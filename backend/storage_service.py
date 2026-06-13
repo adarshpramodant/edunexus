@@ -65,7 +65,7 @@ class MockStorageService:
     @staticmethod
     def get_signed_url(bucket_name, file_path, expires_in=3600):
         # Returns a local server endpoint serving mock file downloads
-        return f"http://localhost:5000/api/documents/mock-download/{bucket_name}/{file_path}"
+        return f"https://edunexus-quw3.onrender.com/api/documents/mock-download/{bucket_name}/{file_path}"
 
     @staticmethod
     def delete_file(bucket_name, file_path):

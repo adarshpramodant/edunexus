@@ -10,7 +10,7 @@
  * Requires: token in localStorage, notifApiBase defined or defaults to /api/notifications
  */
 
-const NOTIF_API  = 'http://localhost:5000/api/notifications';
+const NOTIF_API  = 'https://edunexus-quw3.onrender.com/api/notifications';
 const NOTIF_POLL = 20000; // poll every 20 s
 
 let _notifPollTimer = null;

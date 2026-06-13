@@ -2,7 +2,7 @@
 // EduNexus — Faculty Class Workspace JS  (Attendance v2 + Marks v2)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_URL  = 'http://localhost:5000/api/faculty';
+const API_URL  = 'https://edunexus-quw3.onrender.com/api/faculty';
 const token    = localStorage.getItem('token');
 const userRole = localStorage.getItem('role');
 

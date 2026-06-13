@@ -1,7 +1,7 @@
 import requests
 import json
 
-BASE = "http://localhost:5000/api"
+BASE = "https://edunexus-quw3.onrender.com/api"
 
 # Login as admin to get token
 r_admin = requests.post(f"{BASE}/auth/login", json={"email": "admin_1713414000@test.com", "password": "Admin@123"})

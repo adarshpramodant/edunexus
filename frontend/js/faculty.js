@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/faculty';
+const API_URL = 'https://edunexus-quw3.onrender.com/api/faculty';
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 
@@ -245,7 +245,7 @@ async function fetchUpcomingEvents() {
         const list = document.getElementById('upcoming-events-list');
         if (!container || !list) return;
 
-        const res = await fetch('http://localhost:5000/api/calendar/events/upcoming', { headers: getAuthHeaders() });
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/calendar/events/upcoming', { headers: getAuthHeaders() });
         if (!res.ok) return;
 
         const events = await res.json();
@@ -283,7 +283,7 @@ async function fetchUpcomingEvents() {
 // Fetch Quick summary metrics for analytics widgets
 async function fetchQuickAnalytics() {
     try {
-        const res = await fetch('http://localhost:5000/api/analytics/summary', { headers: getAuthHeaders() });
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/analytics/summary', { headers: getAuthHeaders() });
         if (!res.ok) throw new Error();
         const data = await res.json();
         

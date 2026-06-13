@@ -2,7 +2,7 @@
    EDUNEXUS ADMIN DASHBOARD — Full User Management
    ═══════════════════════════════════════════════════════════════════════════════ */
 
-const API_URL = 'http://localhost:5000/api/admin';
+const API_URL = 'https://edunexus-quw3.onrender.com/api/admin';
 const token   = localStorage.getItem('token');
 const role    = localStorage.getItem('role');
 if (!token || role !== 'admin') window.location.href = 'login.html';
@@ -551,7 +551,7 @@ async function fetchUpcomingEvents() {
         const list = document.getElementById('upcoming-events-list');
         if (!container || !list) return;
 
-        const res = await fetch('http://localhost:5000/api/calendar/events/upcoming', { headers: getAuthHeaders() });
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/calendar/events/upcoming', { headers: getAuthHeaders() });
         if (!res.ok) return;
 
         const events = await res.json();
@@ -593,7 +593,7 @@ async function fetchQuickAnalytics() {
         const avgAttEl = document.getElementById('admin-quick-avg-att');
         if (!atRiskEl && !avgAttEl) return;
 
-        const res = await fetch('http://localhost:5000/api/analytics/summary', { headers: getAuthHeaders() });
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/analytics/summary', { headers: getAuthHeaders() });
         if (!res.ok) return;
 
         const data = await res.json();

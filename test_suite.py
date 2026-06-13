@@ -10,7 +10,7 @@ import sys
 import time
 from datetime import date
 
-BASE = "http://localhost:5000/api"
+BASE = "https://edunexus-quw3.onrender.com/api"
 RESULTS = {"passed": [], "failed": [], "bugs": []}
 tokens = {}   # role -> token
 ids    = {}   # named resource IDs

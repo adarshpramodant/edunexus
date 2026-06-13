@@ -2,7 +2,7 @@
 // EduNexus — Enterprise Assignment System Client JS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE = 'http://localhost:5000/api';
+const API_BASE = 'https://edunexus-quw3.onrender.com/api';
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 

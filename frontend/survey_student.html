@@ -278,7 +278,7 @@
    EDUNEXUS STUDENT SURVEY — Typeform-Style Experience
    ═══════════════════════════════════════════════════════════════════════════════ */
 
-const API   = 'http://localhost:5000/api/student';
+const API   = 'https://edunexus-quw3.onrender.com/api/student';
 const token = localStorage.getItem('token');
 const role  = localStorage.getItem('role');
 if (!token || role !== 'student') window.location.href = 'login.html';

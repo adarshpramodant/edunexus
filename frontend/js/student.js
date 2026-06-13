@@ -2,7 +2,7 @@
 // EduNexus — Student Dashboard JS  (Marks v2 + Performance)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_URL = 'http://localhost:5000/api/student';
+const API_URL = 'https://edunexus-quw3.onrender.com/api/student';
 const token   = localStorage.getItem('token');
 const role    = localStorage.getItem('role');
 
@@ -315,7 +315,7 @@ window.downloadReportCard = async function() {
     btn.style.opacity = '0.7';
 
     try {
-        const res = await fetch('http://localhost:5000/api/student/report', {
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/student/report', {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
 
@@ -368,7 +368,7 @@ async function fetchUpcomingEvents() {
         const list = document.getElementById('upcoming-events-list');
         if (!container || !list) return;
 
-        const res = await fetch('http://localhost:5000/api/calendar/events/upcoming', { headers: getAuthHeaders() });
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/calendar/events/upcoming', { headers: getAuthHeaders() });
         if (!res.ok) return;
 
         const events = await res.json();
@@ -406,7 +406,7 @@ async function fetchUpcomingEvents() {
 // ── Analytics Summary (Student Personal Analytics) ──────────────────────────
 async function fetchStudentAnalytics() {
     try {
-        const res = await fetch('http://localhost:5000/api/analytics/student', { headers: getAuthHeaders() });
+        const res = await fetch('https://edunexus-quw3.onrender.com/api/analytics/student', { headers: getAuthHeaders() });
         if (!res.ok) throw new Error('Failed to load personal analytics');
         const s = await res.json();
 

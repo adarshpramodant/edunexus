@@ -1,4 +1,4 @@
-const API_URL = 'http://localhost:5000/api/auth';
+const API_URL = 'https://edunexus-quw3.onrender.com/api/auth';
 
 function toggleAdminFields() {
     const roleSelect = document.getElementById('role');
