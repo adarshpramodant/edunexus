@@ -35,6 +35,13 @@ app.register_blueprint(assignments_bp)
 app.register_blueprint(calendar_bp)
 app.register_blueprint(analytics_bp)
 
+@app.route('/')
+def home():
+    return {
+        "message": "EduNexus API is running",
+        "status": "success"
+    }
+
 SECRET_KEY = os.environ.get("JWT_SECRET", "super-secret-default-key-please-change")
 
 def create_token(user_id, role):
