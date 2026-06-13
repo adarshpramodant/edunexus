@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Redirecting...</title>
+    <script>
+        // Entry script to handle redirection based on auth state
+        document.addEventListener("DOMContentLoaded", () => {
+            const token = localStorage.getItem("token");
+            const role = localStorage.getItem("role");
+
+            if (!token || !role) {
+                window.location.href = "login.html";
+            } else {
+                if (role === 'student') {
+                    window.location.href = 'student_dashboard.html';
+                } else if (role === 'faculty') {
+                    window.location.href = 'faculty_dashboard.html';
+                } else if (role === 'admin') {
+                    window.location.href = 'admin_dashboard.html';
+                } else {
+                    window.location.href = "login.html";
+                }
+            }
+        });
+    </script>
+</head>
+<body style="background-color: #0f172a; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; font-family: sans-serif;">
+    <h2>Redirecting to EduNexus Dashboard...</h2>
+</body>
+</html>

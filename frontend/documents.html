@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Document Hub</title>
+    <meta name="description" content="EduNexus Enterprise Document Management System. Secure upload, search, download, and archive files.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="css/documents.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2 id="portal-title">EduNexus Hub</h2></div>
+            <ul class="nav-links" id="sidebar-menu">
+                <!-- Sidebar links will render dynamically based on user JWT roles -->
+            </ul>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h1>Document Portal</h1>
+                </div>
+                <div class="user-profile">
+                    <button id="upload-trigger" class="btn" onclick="openUploadModal()"><i class="fas fa-cloud-upload-alt"></i> Upload File</button>
+                </div>
+            </header>
+
+            <div class="content-sections" style="margin-top: 1.5rem;">
+                <div class="dashboard-card">
+                    <!-- Controls section -->
+                    <div class="controls-row">
+                        <div class="category-tabs" id="cat-filters">
+                            <button class="cat-tab active" onclick="filterCategory('', this)">All Category</button>
+                            <button class="cat-tab" onclick="filterCategory('notes', this)">Notes</button>
+                            <button class="cat-tab" onclick="filterCategory('lab_manual', this)">Lab Manuals</button>
+                            <button class="cat-tab" onclick="filterCategory('question_bank', this)">Question Banks</button>
+                            <button class="cat-tab" onclick="filterCategory('circular', this)">Circulars</button>
+                            <button class="cat-tab" onclick="filterCategory('notice', this)">Notices</button>
+                            <button class="cat-tab" onclick="filterCategory('assignment', this)">Assignments</button>
+                            <button class="cat-tab" onclick="filterCategory('certificate', this)">Certificates</button>
+                        </div>
+                        <div class="search-container">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="doc-search" placeholder="Search files…" oninput="handleSearch()">
+                        </div>
+                    </div>
+
+                    <!-- Toggle Active/Archived -->
+                    <div style="display:flex; justify-content:flex-end; gap:0.5rem; margin-bottom:1rem;" id="archive-toggle-container">
+                        <label style="font-size:0.8rem; font-weight:600; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="checkbox" id="show-archived" onchange="toggleShowArchived()"> Show Archived Documents
+                        </label>
+                    </div>
+
+                    <!-- Files Grid -->
+                    <div id="files-list" class="doc-grid">
+                        <p style="color:var(--text-muted)">Loading document listings…</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══ UPLOAD OVERLAY MODAL ═══ -->
+    <div class="modal-overlay" id="upload-modal">
+        <div class="modal-box" style="max-width: 480px;">
+            <h3>Upload Enterprise Document</h3>
+            <p class="modal-desc">Share assignments, certificates, circulars, or manuals safely with your institution. Max size 50MB.</p>
+            <form id="upload-form" onsubmit="handleUploadSubmit(event)">
+                <div class="dropzone-area" onclick="triggerFileInput()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Click to select file or drag & drop</p>
+                    <input type="file" id="file-input" onchange="handleFileSelect(event)" required>
+                </div>
+                <div class="selected-file-badge" id="selected-file-badge">
+                    <span id="selected-file-name">filename.pdf</span>
+                    <i class="fas fa-times" style="cursor:pointer;" onclick="clearSelectedFile()"></i>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Title</label>
+                    <input type="text" id="upload-title" class="form-control" placeholder="Enter document title" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Description</label>
+                    <textarea id="upload-desc" class="form-control" placeholder="Brief details about the file" style="height:60px; font-family:inherit;"></textarea>
+                </div>
+
+                <div class="form-group form-row-grid" style="margin-bottom:0.75rem;">
+                    <div>
+                        <label>Category</label>
+                        <select id="upload-category" class="form-control form-select" required>
+                            <option value="" disabled selected>Select Category</option>
+                            <!-- Options rendered based on Role dynamically -->
+                        </select>
+                    </div>
+                    <div>
+                        <label>Visibility</label>
+                        <select id="upload-visibility" class="form-control form-select" required onchange="handleVisibilityChange()">
+                            <!-- Options rendered dynamically -->
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" id="visibility-target-wrapper" style="margin-bottom:0.75rem; display:none;">
+                    <!-- Dynamic select for target role or class mapping -->
+                </div>
+
+                <div class="modal-error" id="upload-error"></div>
+
+                <div class="modal-actions" style="margin-top:1.5rem;">
+                    <button type="submit" class="btn" id="upload-btn">Upload</button>
+                    <button type="button" class="modal-cancel" onclick="closeUploadModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ TOAST ═══ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/documents.js"></script>
+</body>
+</html>

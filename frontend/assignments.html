@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Assignments Hub</title>
+    <meta name="description" content="EduNexus Enterprise Assignment Submission & Evaluation System. Manage, submit, evaluate, and track assignment progress.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ── Glassmorphism Grid Layout ── */
+        .assign-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+        .assign-card {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+            position: relative;
+        }
+        .assign-card:hover {
+            transform: translateY(-4px);
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+        .assign-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin: 0;
+            line-height: 1.35;
+        }
+        .assign-desc {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            line-height: 1.5;
+            flex: 1;
+            margin: 0;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .assign-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            border-top: 1px solid rgba(255, 255, 255, 0.04);
+            padding-top: 0.75rem;
+        }
+        .assign-meta span { display: inline-flex; align-items: center; gap: 0.3rem; }
+
+        .status-badge {
+            font-size: 0.68rem;
+            font-weight: 700;
+            padding: 0.25rem 0.6rem;
+            border-radius: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+        }
+        .status-badge.draft { background: rgba(148, 163, 184, 0.15); color: #94a3b8; }
+        .status-badge.published { background: rgba(99, 102, 241, 0.15); color: #818cf8; }
+        .status-badge.closed { background: rgba(239, 68, 68, 0.15); color: #f87171; }
+        .status-badge.submitted { background: rgba(251, 191, 36, 0.15); color: #fbbf24; }
+        .status-badge.graded { background: rgba(16, 185, 129, 0.15); color: #34d399; }
+
+        /* ── Controls Layout ── */
+        .controls-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+        .category-tabs {
+            display: flex;
+            gap: 0.4rem;
+        }
+        .cat-tab {
+            padding: 0.5rem 1.1rem;
+            border-radius: 2rem;
+            font-size: 0.82rem;
+            font-weight: 600;
+            border: 1px solid var(--border-color);
+            background: transparent;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .cat-tab.active {
+            background: var(--primary-color);
+            color: white;
+            border-color: var(--primary-color);
+        }
+        
+        /* ── Dropzone & Upload Styling ── */
+        .dropzone-area {
+            border: 2px dashed var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.25);
+            cursor: pointer;
+            transition: border-color 0.2s;
+            margin-bottom: 1rem;
+        }
+        .dropzone-area:hover { border-color: var(--primary-color); }
+        .dropzone-area i { font-size: 1.8rem; color: var(--text-muted); margin-bottom: 0.4rem; }
+        .dropzone-area p { font-size: 0.8rem; color: var(--text-muted); margin: 0; }
+        .dropzone-area input { display: none; }
+
+        /* ── Table customizer for submissions ── */
+        .sub-table th, .sub-table td {
+            padding: 0.75rem 1rem;
+            font-size: 0.85rem;
+        }
+        .sub-table tr {
+            transition: background 0.15s;
+        }
+        .sub-table tr:hover { background: rgba(255, 255, 255, 0.02); }
+
+        /* ── Stats Display inside details ── */
+        .stats-strip {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+        .stat-badge-box {
+            background: rgba(15, 23, 42, 0.4);
+            border: 1px solid var(--border-color);
+            border-radius: 0.5rem;
+            padding: 0.75rem;
+            text-align: center;
+        }
+        .stat-badge-val { font-size: 1.25rem; font-weight: 800; color: var(--text-main); margin-top: 0.25rem;}
+        .stat-badge-lbl { font-size: 0.68rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2 id="portal-title">EduNexus Hub</h2></div>
+            <ul class="nav-links" id="sidebar-menu">
+                <!-- Sidebar links will render dynamically based on user JWT roles -->
+            </ul>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <h1>Assignment Portal</h1>
+                <div class="user-profile" id="faculty-actions-container" style="display:none;">
+                    <button class="btn" onclick="openCreateModal()"><i class="fas fa-plus"></i> Create Assignment</button>
+                </div>
+            </header>
+
+            <div class="content-sections" style="margin-top: 1.5rem;">
+                <div class="dashboard-card">
+                    <!-- Controls section -->
+                    <div class="controls-row">
+                        <div class="category-tabs" id="status-filters">
+                            <button class="cat-tab active" onclick="filterStatus('', this)">All Active</button>
+                            <button class="cat-tab" id="tab-draft" style="display:none;" onclick="filterStatus('draft', this)">Drafts</button>
+                            <button class="cat-tab" onclick="filterStatus('published', this)">Published</button>
+                            <button class="cat-tab" onclick="filterStatus('closed', this)">Closed</button>
+                        </div>
+                    </div>
+
+                    <!-- Assignments Grid -->
+                    <div id="assignments-list" class="assign-grid">
+                        <p style="color:var(--text-muted)">Loading assignment hub…</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══ CREATE/EDIT MODAL ═══ -->
+    <div class="modal-overlay" id="create-modal">
+        <div class="modal-box" style="max-width: 500px;">
+            <h3 id="modal-title-text">Create Assignment</h3>
+            <p class="modal-desc" id="modal-desc-text">Create a new assignment and assign it to class rosters. Max grade score must be numeric.</p>
+            <form id="assignment-form" onsubmit="handleAssignmentSubmit(event)">
+                <input type="hidden" id="edit-assign-id" value="">
+
+                <div class="form-group" style="margin-bottom:0.75rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;" id="class-selectors-group">
+                    <div>
+                        <label>Target Class</label>
+                        <select id="assign-class-select" class="form-control form-select" required onchange="loadClassSubjects()">
+                            <option value="" disabled selected>Select Class</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label>Subject</label>
+                        <select id="assign-subject-select" class="form-control form-select" required>
+                            <option value="" disabled selected>Select Subject</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Assignment Title</label>
+                    <input type="text" id="assign-title" class="form-control" placeholder="E.g., Midterm Project Report" required>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0.75rem;">
+                    <label>Description & Guidelines</label>
+                    <textarea id="assign-desc" class="form-control" placeholder="Explain prompt guidelines and submission criteria..." style="height:70px; font-family:inherit;"></textarea>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0.75rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                    <div>
+                        <label>Max Marks</label>
+                        <input type="number" id="assign-max-marks" class="form-control" min="1" max="1000" placeholder="100" required>
+                    </div>
+                    <div>
+                        <label>Deadline Date</label>
+                        <input type="datetime-local" id="assign-deadline" class="form-control" required>
+                    </div>
+                </div>
+
+                <div class="form-group" style="margin-bottom:0.75rem; display:grid; grid-template-columns:1fr 1fr; gap:0.75rem;">
+                    <div>
+                        <label>Status</label>
+                        <select id="assign-status" class="form-control form-select" required>
+                            <option value="published" selected>Publish Immediately</option>
+                            <option value="draft">Save as Draft</option>
+                        </select>
+                    </div>
+                    <div style="display:flex; align-items:center; margin-top:1.2rem;">
+                        <label style="display:flex; align-items:center; gap:0.4rem; cursor:pointer;">
+                            <input type="checkbox" id="assign-allow-resubmit" checked> Allow Resubmissions
+                        </label>
+                    </div>
+                </div>
+
+                <div class="modal-error" id="assign-error"></div>
+
+                <div class="modal-actions" style="margin-top:1.5rem;">
+                    <button type="submit" class="btn" id="assign-submit-btn">Save</button>
+                    <button type="button" class="modal-cancel" onclick="closeCreateModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ SUBMISSIONS REVIEW MODAL ═══ -->
+    <div class="modal-overlay" id="submissions-modal">
+        <div class="modal-box" style="max-width: 900px; width:95%;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem;">
+                <h3>Assignment Submissions Review</h3>
+                <button class="modal-cancel" style="padding:0.4rem 0.8rem; flex:unset; max-width:80px; margin:0;" onclick="closeSubmissionsModal()">Close</button>
+            </div>
+            <p class="modal-desc" id="review-assign-meta">Class: Computer Science | Subject: DBMS | Max Score: 100</p>
+
+            <!-- Statistics widgets -->
+            <div class="stats-strip" id="assign-stats-strip">
+                <div class="stat-badge-box">
+                    <div class="stat-badge-lbl">Total Enrolled</div>
+                    <div class="stat-badge-val" id="stat-total-students">…</div>
+                </div>
+                <div class="stat-badge-box">
+                    <div class="stat-badge-lbl">Submitted</div>
+                    <div class="stat-badge-val" id="stat-total-submitted">…</div>
+                </div>
+                <div class="stat-badge-box">
+                    <div class="stat-badge-lbl">Pending Grade</div>
+                    <div class="stat-badge-val" id="stat-pending-evaluation" style="color:#fbbf24;">…</div>
+                </div>
+                <div class="stat-badge-box">
+                    <div class="stat-badge-lbl">Class Average</div>
+                    <div class="stat-badge-val" id="stat-average-score" style="color:#818cf8;">…</div>
+                </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <h4 style="margin:0;"><i class="fas fa-users-cog"></i> Student Roster</h4>
+                <button class="btn" id="publish-marks-btn" onclick="publishAssignmentMarks()" style="background:linear-gradient(135deg,#10b981,#059669); padding:0.5rem 1rem; font-size:0.8rem; margin:0; display:none;">
+                    <i class="fas fa-bullhorn"></i> Publish Grades to Report Cards
+                </button>
+            </div>
+
+            <div class="table-container" style="max-height: 400px; overflow-y: auto;">
+                <table class="sub-table" id="submissions-table">
+                    <thead>
+                        <tr>
+                            <th>Reg No</th>
+                            <th>Student</th>
+                            <th>Submitted Date</th>
+                            <th>File</th>
+                            <th>Score</th>
+                            <th>Feedback</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Submissions loaded dynamically -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ STUDENT SUBMISSION MODAL ═══ -->
+    <div class="modal-overlay" id="submit-modal">
+        <div class="modal-box" style="max-width: 440px;">
+            <h3>Submit Assignment</h3>
+            <p class="modal-desc" id="student-submit-meta">DBMS Assignment 1 | Max Score: 100 | Deadline: Jan 12</p>
+            <form id="submission-form" onsubmit="handleStudentSubmit(event)">
+                <input type="hidden" id="submit-assign-id" value="">
+
+                <!-- Upload Drag and Drop zone -->
+                <div class="dropzone-area" onclick="triggerFileInput()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p id="dropzone-text">Click or drag assignment file (PDF, DOCX) here</p>
+                    <input type="file" id="file-input" onchange="handleFileSelect(event)" required>
+                </div>
+
+                <div class="selected-file-badge" id="selected-file-badge" style="display:none; background:rgba(99,102,241,0.08); border:1px solid rgba(99,102,241,0.2); border-radius:0.5rem; padding:0.5rem 0.75rem; font-size:0.8rem; align-items:center; justify-content:space-between; margin-bottom:1rem;">
+                    <span id="selected-file-name" style="font-weight:700; color:var(--text-main);">filename.pdf</span>
+                    <i class="fas fa-times" style="cursor:pointer;" onclick="clearSelectedFile()"></i>
+                </div>
+
+                <div class="modal-error" id="submit-error"></div>
+
+                <div class="modal-actions" style="margin-top:1.5rem;">
+                    <button type="submit" class="btn" id="submit-btn">Submit Assignment</button>
+                    <button type="button" class="modal-cancel" onclick="closeSubmitModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ═══ TOAST ═══ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="js/auth.js"></script>
+    <script src="js/assignments.js"></script>
+</body>
+</html>

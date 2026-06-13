@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Class Workspace</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .tabs-header { border-bottom: 2px solid var(--border-color); display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .tab-btn { background: none; border: none; color: var(--text-muted); font-size: 1rem; font-weight: 600; padding: 1rem 0; cursor: pointer; position: relative; }
+        .tab-btn.active { color: var(--primary-color); }
+        .tab-btn.active::after { content: ''; position: absolute; bottom: -2px; left: 0; width: 100%; height: 2px; background: var(--primary-color); }
+
+        /* ── Timetable Grid ── */
+        .tt-grid { overflow-x: auto; margin-top: 1.5rem; }
+        .tt-grid table { width: 100%; border-collapse: collapse; min-width: 720px; }
+        .tt-grid th, .tt-grid td { padding: 0.5rem 0.4rem; border: 1px solid var(--border-color); text-align: center; font-size: 0.82rem; }
+        .tt-grid th { background: rgba(99,102,241,0.1); color: var(--primary-color); font-weight: 700; }
+        .tt-grid td.day-label { font-weight: 600; color: var(--text-main); background: rgba(15,23,42,0.4); white-space: nowrap; padding: 0 0.75rem; min-width: 90px; }
+        .tt-grid td.today-col { background: rgba(99,102,241,0.06); }
+        .tt-select { width: 100%; background: var(--input-bg,rgba(15,23,42,0.6)); color: var(--text-main); border: 1px solid var(--border-color); border-radius: 0.4rem; padding: 0.3rem 0.25rem; font-size: 0.8rem; cursor: pointer; }
+        .tt-select:focus { outline: none; border-color: var(--primary-color); }
+        .tt-readonly-cell { font-size: 0.8rem; color: var(--text-muted); padding: 0.35rem; }
+        .tt-readonly-cell strong { color: var(--text-main); display: block; }
+        .tt-readonly-cell small { font-size: 0.7rem; }
+
+        /* ── Attendance v2 ── */
+        .att-controls-bar {
+            display: flex; align-items: center; flex-wrap: wrap; gap: 0.75rem;
+            padding: 1rem; background: rgba(15,23,42,0.5);
+            border-radius: 0.75rem; border: 1px solid var(--border-color);
+            margin-bottom: 1.25rem;
+        }
+        .att-controls-bar .form-control { flex: 1; min-width: 130px; }
+        .btn-fetch {
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: #fff; border: none; border-radius: 0.5rem;
+            padding: 0.6rem 1.4rem; font-weight: 700; cursor: pointer;
+            transition: opacity .2s; white-space: nowrap; font-size: 0.875rem;
+        }
+        .btn-fetch:hover { opacity: 0.85; }
+        .att-meta-bar {
+            display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;
+            padding: 0.6rem 1rem; background: rgba(99,102,241,0.07);
+            border-left: 3px solid var(--primary-color);
+            border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 1rem;
+            font-size: 0.82rem; color: var(--text-muted);
+        }
+        .att-meta-bar strong { color: var(--text-main); }
+        .att-conflict-banner {
+            display: none; align-items: flex-start; gap: 0.75rem;
+            padding: 1rem 1.25rem; border-radius: 0.6rem;
+            background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.4);
+            margin-bottom: 1rem; color: #fbbf24;
+        }
+        .att-conflict-banner.show { display: flex; }
+        .att-conflict-icon { font-size: 1.3rem; flex-shrink: 0; padding-top: 2px; }
+        .att-conflict-banner p { margin: 0; font-size: 0.875rem; line-height: 1.5; }
+        .btn-overwrite {
+            margin-top: 0.5rem; padding: 0.4rem 1rem; border: 1px solid #fbbf24;
+            background: transparent; color: #fbbf24; border-radius: 0.4rem;
+            cursor: pointer; font-size: 0.8rem; font-weight: 600; transition: all .2s; display: inline-block;
+        }
+        .btn-overwrite:hover { background: rgba(251,191,36,0.15); }
+        .att-bulk-bar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .att-bulk-label { font-weight: 600; color: var(--text-muted); font-size: 0.875rem; }
+        .btn-bulk { padding: 0.45rem 1.1rem; border-radius: 0.45rem; border: none; font-weight: 700; font-size: 0.82rem; cursor: pointer; transition: all .15s; }
+        .btn-bulk.present  { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.35); }
+        .btn-bulk.absent   { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.35); }
+        .btn-bulk.present:hover { background: rgba(16,185,129,0.28); }
+        .btn-bulk.absent:hover  { background: rgba(239,68,68,0.22); }
+        .att-summary-pill { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; font-size: 0.78rem; font-weight: 600; }
+        .spill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.65rem; border-radius: 1rem; }
+        .spill.p  { background: rgba(16,185,129,0.15); color: #10b981; }
+        .spill.ab { background: rgba(239,68,68,0.12); color: #ef4444; }
+        .spill.sr { background: rgba(245,158,11,0.12); color: #f59e0b; }
+        .spill.dl { background: rgba(99,102,241,0.12); color: #6366f1; }
+        #att-bulk-table { width: 100%; border-collapse: collapse; }
+        #att-bulk-table thead { position: sticky; top: 0; z-index: 5; }
+        #att-bulk-table thead th { background: rgba(15,23,42,0.97); padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 700; text-align: left; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
+        #att-bulk-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background .15s; }
+        #att-bulk-table tbody tr:hover { background: rgba(99,102,241,0.04); }
+        #att-bulk-table tbody td { padding: 0.6rem 1rem; font-size: 0.875rem; vertical-align: middle; }
+        #att-bulk-table .reg-col { color: var(--text-muted); font-size: 0.78rem; font-family: monospace; }
+        #att-bulk-table .name-col { font-weight: 600; }
+        .status-btn-group { display: flex; gap: 0.4rem; }
+        .status-btn { padding: 0.3rem 0.78rem; border-radius: 0.35rem; border: 1px solid rgba(255,255,255,0.1); font-weight: 700; font-size: 0.78rem; cursor: pointer; transition: all .12s; background: rgba(255,255,255,0.04); color: var(--text-muted); }
+        .status-btn:hover { transform: scale(1.06); }
+        .status-btn.active-P  { background: rgba(16,185,129,0.22); color: #10b981; border-color: rgba(16,185,129,0.55); }
+        .status-btn.active-AB { background: rgba(239,68,68,0.18); color: #ef4444; border-color: rgba(239,68,68,0.5); }
+        .status-btn.active-SR { background: rgba(245,158,11,0.18); color: #f59e0b; border-color: rgba(245,158,11,0.45); }
+        .status-btn.active-DL { background: rgba(99,102,241,0.2); color: #6366f1; border-color: rgba(99,102,241,0.45); }
+        .att-sheet-wrapper { max-height: 420px; overflow-y: auto; border-radius: 0.65rem; border: 1px solid var(--border-color); }
+        .att-sheet-wrapper::-webkit-scrollbar { width: 5px; }
+        .att-sheet-wrapper::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+        .att-save-footer { display: flex; align-items: center; gap: 1rem; margin-top: 1.25rem; flex-wrap: wrap; }
+        .btn-save-att { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 0.55rem; padding: 0.7rem 2rem; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: opacity .2s, transform .1s; }
+        .btn-save-att:hover { opacity: 0.87; transform: translateY(-1px); }
+        .btn-save-att:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-history { padding: 0.65rem 1.25rem; border-radius: 0.5rem; border: 1px solid var(--border-color); background: transparent; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; cursor: pointer; transition: all .15s; }
+        .btn-history:hover { border-color: var(--primary-color); color: var(--primary-color); }
+
+        /* Attendance History Modal */
+        .gen-modal { display: none; position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px); align-items: center; justify-content: center; padding: 1.5rem; }
+        .gen-modal.open { display: flex; }
+        .gen-modal-panel { background: #0f172a; border: 1px solid var(--border-color); border-radius: 1rem; width: 100%; max-width: 780px; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 32px 80px rgba(0,0,0,0.6); }
+        .gen-modal-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .gen-modal-header h3 { margin: 0; font-size: 1.1rem; }
+        .btn-close-modal { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; line-height: 1; transition: color .15s; }
+        .btn-close-modal:hover { color: var(--text-main); }
+        .gen-modal-body { padding: 1.25rem 1.5rem; overflow-y: auto; flex: 1; }
+        .hist-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        .hist-table th { text-align: left; padding: 0.5rem 0.75rem; color: var(--text-muted); border-bottom: 1px solid var(--border-color); font-size: 0.74rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .hist-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(255,255,255,0.03); }
+        .hist-table tr:hover td { background: rgba(99,102,241,0.04); }
+        .schip { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 0.3rem; font-weight: 700; font-size: 0.72rem; }
+        .schip-P  { background: rgba(16,185,129,0.17); color: #10b981; }
+        .schip-AB { background: rgba(239,68,68,0.14); color: #ef4444; }
+        .schip-SR { background: rgba(245,158,11,0.14); color: #f59e0b; }
+        .schip-DL { background: rgba(99,102,241,0.15); color: #6366f1; }
+        .schip-null{ background: rgba(255,255,255,0.06); color: var(--text-muted); }
+
+        /* ══ MARKS v2 STYLES ══ */
+        .marks-controls {
+            display: flex; align-items: flex-end; flex-wrap: wrap; gap: 0.75rem;
+            padding: 1.25rem; background: rgba(15,23,42,0.5);
+            border-radius: 0.75rem; border: 1px solid var(--border-color);
+            margin-bottom: 1.25rem;
+        }
+        .marks-controls .form-control { flex: 1; min-width: 140px; }
+        .marks-controls label { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 0.3rem; text-transform: uppercase; letter-spacing: 0.04em; }
+        .marks-controls .field-group { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+        .marks-meta-bar { display: flex; align-items: center; gap: 1.5rem; padding: 0.6rem 1rem; background: rgba(99,102,241,0.07); border-left: 3px solid var(--primary-color); border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 1rem; font-size: 0.82rem; color: var(--text-muted); }
+        .marks-meta-bar strong { color: var(--text-main); }
+
+        /* Marks bulk bar */
+        .marks-bulk-bar { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1rem; }
+        .marks-bulk-label { font-weight: 600; color: var(--text-muted); font-size: 0.875rem; }
+        .btn-fill-all { padding: 0.4rem 1rem; border-radius: 0.4rem; border: 1px solid rgba(99,102,241,0.35); background: rgba(99,102,241,0.1); color: #6366f1; font-weight: 700; font-size: 0.8rem; cursor: pointer; transition: all .15s; }
+        .btn-fill-all:hover { background: rgba(99,102,241,0.2); }
+        .marks-range-note { margin-left: auto; font-size: 0.78rem; color: var(--text-muted); font-style: italic; }
+
+        /* Marks bulk table */
+        #marks-bulk-table { width: 100%; border-collapse: collapse; }
+        #marks-bulk-table thead { position: sticky; top: 0; z-index: 5; }
+        #marks-bulk-table thead th { background: rgba(15,23,42,0.97); padding: 0.75rem 1rem; color: var(--text-muted); font-weight: 700; text-align: left; font-size: 0.78rem; letter-spacing: 0.05em; text-transform: uppercase; border-bottom: 2px solid var(--border-color); }
+        #marks-bulk-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background .15s; }
+        #marks-bulk-table tbody tr:hover { background: rgba(99,102,241,0.04); }
+        #marks-bulk-table tbody td { padding: 0.55rem 1rem; font-size: 0.875rem; vertical-align: middle; }
+        #marks-bulk-table .reg-col { color: var(--text-muted); font-size: 0.78rem; font-family: monospace; }
+        #marks-bulk-table .name-col { font-weight: 600; }
+        #marks-bulk-table .prev-col { font-size: 0.78rem; color: var(--text-muted); }
+
+        .mark-input-wrap { position: relative; }
+        .mark-input { width: 100%; max-width: 110px; background: rgba(15,23,42,0.7); border: 1px solid var(--border-color); border-radius: 0.4rem; color: var(--text-main); padding: 0.4rem 0.6rem; font-size: 0.875rem; text-align: right; transition: border-color .15s; }
+        .mark-input:focus { outline: none; border-color: var(--primary-color); }
+        .mark-input.mark-high { border-color: rgba(16,185,129,0.5); background: rgba(16,185,129,0.08); }
+        .mark-input.mark-low  { border-color: rgba(239,68,68,0.45); background: rgba(239,68,68,0.07); }
+
+        /* Grade badge */
+        .grade-badge { display: inline-flex; align-items: center; justify-content: center; width: 2rem; height: 2rem; border-radius: 50%; font-weight: 800; font-size: 0.75rem; }
+        .grade-Ap { background: rgba(16,185,129,0.2); color: #10b981; }
+        .grade-A  { background: rgba(16,185,129,0.14); color: #34d399; }
+        .grade-Bp { background: rgba(99,102,241,0.2); color: #818cf8; }
+        .grade-B  { background: rgba(99,102,241,0.14); color: #a5b4fc; }
+        .grade-C  { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .grade-D  { background: rgba(239,68,68,0.14); color: #f87171; }
+
+        .marks-sheet-wrapper { max-height: 420px; overflow-y: auto; border-radius: 0.65rem; border: 1px solid var(--border-color); }
+        .marks-sheet-wrapper::-webkit-scrollbar { width: 5px; }
+        .marks-sheet-wrapper::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 3px; }
+
+        .marks-save-footer { display: flex; align-items: center; gap: 1rem; margin-top: 1.25rem; flex-wrap: wrap; }
+        .btn-save-marks { background: linear-gradient(135deg, #6366f1, #8b5cf6); color: #fff; border: none; border-radius: 0.55rem; padding: 0.7rem 2rem; font-weight: 800; font-size: 0.9rem; cursor: pointer; transition: opacity .2s, transform .1s; }
+        .btn-save-marks:hover { opacity: 0.87; transform: translateY(-1px); }
+        .btn-save-marks:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+        /* Summary tab inside marks */
+        .marks-tabs { display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+        .marks-tab-btn { padding: 0.45rem 1.1rem; border-radius: 2rem; border: 1px solid var(--border-color); background: transparent; color: var(--text-muted); font-weight: 600; font-size: 0.82rem; cursor: pointer; transition: all .15s; }
+        .marks-tab-btn.active { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.4); color: #6366f1; }
+
+        /* Summary table */
+        #marks-summary-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+        #marks-summary-table thead th { background: rgba(15,23,42,0.97); padding: 0.75rem 0.75rem; color: var(--text-muted); font-weight: 700; text-align: left; font-size: 0.74rem; letter-spacing: 0.04em; text-transform: uppercase; border-bottom: 2px solid var(--border-color); white-space: nowrap; }
+        #marks-summary-table tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); }
+        #marks-summary-table tbody tr:hover td { background: rgba(99,102,241,0.04); }
+        #marks-summary-table tbody td { padding: 0.6rem 0.75rem; vertical-align: middle; }
+
+        /* Toast */
+        #ws-toast {
+            position: fixed; bottom: 2rem; right: 2rem; z-index: 9999;
+            display: flex; align-items: center; gap: 0.75rem;
+            padding: 0.9rem 1.4rem; border-radius: 0.65rem;
+            font-weight: 600; font-size: 0.9rem;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.45);
+            transform: translateY(130%); opacity: 0;
+            transition: transform .35s cubic-bezier(.34,1.56,.64,1), opacity .35s;
+            pointer-events: none;
+        }
+        #ws-toast.show { transform: translateY(0); opacity: 1; }
+        #ws-toast.success { background: rgba(16,185,129,0.18); border: 1px solid rgba(16,185,129,0.4); color: #10b981; }
+        #ws-toast.error   { background: rgba(239,68,68,0.14); border: 1px solid rgba(239,68,68,0.4); color: #ef4444; }
+        #ws-toast.warning { background: rgba(245,158,11,0.14); border: 1px solid rgba(245,158,11,0.4); color: #f59e0b; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>EduNexus</h2>
+                <p style="color:var(--text-muted); font-size:0.875rem;">Faculty Portal</p>
+            </div>
+            <ul class="nav-links">
+                <li><a href="faculty_dashboard.html"><i class="fas fa-arrow-left"></i> Back to Dashboard</a></li>
+            </ul>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar" style="display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1rem;">
+                <div>
+                    <h1 id="class-title">Class Workspace</h1>
+                    <p id="class-subtitle" style="color:var(--text-muted); margin-top:0.5rem;"></p>
+                    <span id="role-badge" style="display:inline-block; margin-top:0.5rem; background:rgba(99,102,241,0.1); color:var(--primary-color); padding:0.25rem 0.75rem; border-radius:1rem; font-size:0.875rem; font-weight:600; text-transform:capitalize;"></span>
+                </div>
+                <div id="notif-bell-mount"></div>
+            </header>
+
+            <div class="tabs-header">
+                <button class="tab-btn active" onclick="switchTab('tab-students', this)">Students</button>
+                <button class="tab-btn" onclick="switchTab('tab-attendance', this)">Attendance</button>
+                <button class="tab-btn" onclick="switchTab('tab-marks', this)">Marks</button>
+                <button class="tab-btn" onclick="switchTab('tab-subjects', this)" id="tab-subjects-btn" style="display:none;">Subjects Setup</button>
+                <button class="tab-btn" onclick="switchTab('tab-timetable', this)" id="tab-timetable-btn">Timetable</button>
+            </div>
+
+            <!-- Tab: Students -->
+            <section id="tab-students" class="section-content active">
+                <div class="dashboard-card">
+                    <h2>Enrolled Students</h2>
+                    <div class="table-container">
+                        <table id="students-table">
+                            <thead><tr><th>Register No</th><th>Name</th><th>Email</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════════════════════════════════════ Attendance v2 ════ -->
+            <section id="tab-attendance" class="section-content">
+                <div class="dashboard-card">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem;">
+                        <div>
+                            <h2 style="margin:0;">Manage Attendance</h2>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin:0.25rem 0 0;">Select date, hour and subject to load or mark attendance.</p>
+                        </div>
+                    </div>
+                    <div class="att-controls-bar">
+                        <input type="date" id="att-date" class="form-control" style="min-width:150px;" required>
+                        <select id="att-hour" class="form-control form-select" style="min-width:130px;" required>
+                            <option value="" disabled selected>Hour</option>
+                            <option value="1">1st Hour</option><option value="2">2nd Hour</option>
+                            <option value="3">3rd Hour</option><option value="4">4th Hour</option>
+                            <option value="5">5th Hour</option><option value="6">6th Hour</option>
+                            <option value="7">7th Hour</option><option value="8">8th Hour</option>
+                        </select>
+                        <select id="att-subject" class="form-control form-select" style="min-width:170px;" required></select>
+                        <button class="btn-fetch" onclick="fetchAttendanceSheet()"><i class="fas fa-search"></i> Load Session</button>
+                    </div>
+                    <div id="att-conflict-banner" class="att-conflict-banner">
+                        <span class="att-conflict-icon"><i class="fas fa-exclamation-triangle"></i></span>
+                        <div>
+                            <p id="att-conflict-msg">Conflict detected in this slot.</p>
+                            <button class="btn-overwrite" onclick="saveAttendanceV2(true)"><i class="fas fa-pen"></i> Yes, Overwrite &amp; Save</button>
+                        </div>
+                    </div>
+                    <div id="att-sheet-section" style="display:none;">
+                        <div id="att-meta-bar" class="att-meta-bar" style="display:none;">
+                            <span><i class="fas fa-user-edit" style="margin-right:4px;"></i> Last updated by: <strong id="meta-updated-by">—</strong></span>
+                            <span><i class="fas fa-clock" style="margin-right:4px;"></i> <strong id="meta-updated-at">—</strong></span>
+                        </div>
+                        <div class="att-bulk-bar">
+                            <span class="att-bulk-label"><i class="fas fa-bolt"></i> Bulk:</span>
+                            <button class="btn-bulk present" onclick="markAll('P')"><i class="fas fa-check"></i> Mark All Present</button>
+                            <button class="btn-bulk absent" onclick="markAll('AB')"><i class="fas fa-times"></i> Mark All Absent</button>
+                            <div class="att-summary-pill">
+                                <span class="spill p"><i class="fas fa-check-circle"></i> <span id="cnt-P">0</span> P</span>
+                                <span class="spill ab"><i class="fas fa-times-circle"></i> <span id="cnt-AB">0</span> AB</span>
+                                <span class="spill sr"><i class="fas fa-procedures"></i> <span id="cnt-SR">0</span> SR</span>
+                                <span class="spill dl"><i class="fas fa-briefcase"></i> <span id="cnt-DL">0</span> DL</span>
+                            </div>
+                        </div>
+                        <div class="att-sheet-wrapper">
+                            <table id="att-bulk-table">
+                                <thead><tr><th style="width:42px;">#</th><th>Reg. No</th><th>Name</th><th>Status</th></tr></thead>
+                                <tbody id="att-tbody"></tbody>
+                            </table>
+                        </div>
+                        <div class="att-save-footer">
+                            <button class="btn-save-att" id="btn-save-att" onclick="saveAttendanceV2(false)"><i class="fas fa-save"></i> Save Attendance</button>
+                            <button class="btn-history" onclick="openHistoryModal()"><i class="fas fa-history"></i> Edit History</button>
+                            <span id="att-save-indicator" style="font-size:0.82rem; color:var(--text-muted); opacity:0; transition:opacity .3s;"></span>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ════════════════════════════════════ Marks v2 ═════════ -->
+            <section id="tab-marks" class="section-content">
+                <div class="dashboard-card">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-bottom:1.5rem;">
+                        <div>
+                            <h2 style="margin:0;">Manage Marks</h2>
+                            <p style="color:var(--text-muted); font-size:0.85rem; margin:0.25rem 0 0;">Select subject and evaluation component to enter or update marks.</p>
+                        </div>
+                    </div>
+
+                    <!-- Sub-tabs: Entry | Summary -->
+                    <div class="marks-tabs">
+                        <button class="marks-tab-btn active" id="mtab-entry-btn" onclick="switchMarksTab('entry', this)"><i class="fas fa-edit"></i> Mark Entry</button>
+                        <button class="marks-tab-btn" id="mtab-summary-btn" onclick="switchMarksTab('summary', this)"><i class="fas fa-chart-bar"></i> Class Summary</button>
+                    </div>
+
+                    <!-- ─── Entry panel ─── -->
+                    <div id="mtab-entry">
+                        <!-- Controls -->
+                        <div class="marks-controls">
+                            <div class="field-group">
+                                <label>Subject</label>
+                                <select id="marks-subject" class="form-control form-select" onchange="onMarksSubjectChange()"></select>
+                            </div>
+                            <div class="field-group">
+                                <label>Type</label>
+                                <select id="marks-type" class="form-control form-select">
+                                    <option value="" disabled selected>Select type</option>
+                                    <option value="Internal">Internal</option>
+                                    <option value="Assignment">Assignment</option>
+                                    <option value="Lab">Lab</option>
+                                    <option value="Quiz">Quiz</option>
+                                    <option value="Activity">Activity</option>
+                                    <option value="Custom">Custom</option>
+                                </select>
+                            </div>
+                            <div class="field-group">
+                                <label>Name (e.g. Internal 1)</label>
+                                <input type="text" id="marks-name" class="form-control" placeholder="e.g. Internal 1">
+                            </div>
+                            <div class="field-group" style="min-width:90px; max-width:110px;">
+                                <label>Max Marks</label>
+                                <input type="number" id="marks-max" class="form-control" value="100" min="1" max="1000">
+                            </div>
+                            <div style="display:flex; flex-direction:column; justify-content:flex-end;">
+                                <button class="btn-fetch" onclick="fetchMarksSheet()"><i class="fas fa-search"></i> Load</button>
+                            </div>
+                        </div>
+
+                        <!-- Meta bar (shows last saved info) -->
+                        <div id="marks-meta-bar" class="marks-meta-bar" style="display:none;">
+                            <span><i class="fas fa-user-edit" style="margin-right:4px;"></i> Existing data loaded. Edits will update records.</span>
+                            <span id="marks-meta-count"></span>
+                        </div>
+
+                        <!-- Sheet -->
+                        <div id="marks-sheet-section" style="display:none;">
+                            <div class="marks-bulk-bar">
+                                <span class="marks-bulk-label"><i class="fas fa-bolt"></i> Quick fill:</span>
+                                <button class="btn-fill-all" onclick="fillAll()"><i class="fas fa-fill-drip"></i> Fill All Empty</button>
+                                <input type="number" id="fill-value" class="form-control" style="max-width:90px; display:inline-block;" placeholder="Value">
+                                <span class="marks-range-note" id="marks-range-note">Range: 0 – 100</span>
+                            </div>
+                            <div class="marks-sheet-wrapper">
+                                <table id="marks-bulk-table">
+                                    <thead>
+                                        <tr>
+                                            <th style="width:42px;">#</th>
+                                            <th>Reg. No</th>
+                                            <th>Name</th>
+                                            <th>Marks <span id="marks-max-label" style="font-weight:400; color:var(--text-muted);">/ 100</span></th>
+                                            <th>Prev.</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="marks-tbody"></tbody>
+                                </table>
+                            </div>
+                            <div class="marks-save-footer">
+                                <button class="btn-save-marks" id="btn-save-marks" onclick="saveMarksV2()"><i class="fas fa-save"></i> Save Marks</button>
+                                <span id="marks-save-indicator" style="font-size:0.82rem; color:var(--text-muted); opacity:0; transition:opacity .3s;"></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ─── Summary panel ─── -->
+                    <div id="mtab-summary" style="display:none;">
+                        <div style="display:flex; gap:0.75rem; align-items:flex-end; flex-wrap:wrap; margin-bottom:1.25rem;">
+                            <div class="field-group" style="flex:1; min-width:160px;">
+                                <label style="font-size:0.78rem; color:var(--text-muted); font-weight:600; display:block; margin-bottom:0.3rem; text-transform:uppercase; letter-spacing:0.04em;">Subject</label>
+                                <select id="summary-subject" class="form-control form-select"></select>
+                            </div>
+                            <button class="btn-fetch" onclick="loadMarksSummary()"><i class="fas fa-chart-bar"></i> Show Summary</button>
+                        </div>
+                        <div id="summary-section" style="display:none;">
+                            <div class="marks-sheet-wrapper" style="max-height:500px;">
+                                <table id="marks-summary-table">
+                                    <thead id="summary-head"></thead>
+                                    <tbody id="summary-tbody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <p id="summary-empty" style="display:none; text-align:center; color:var(--text-muted); padding:2rem 0;">No marks recorded for this subject yet.</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Subjects -->
+            <section id="tab-subjects" class="section-content">
+                <div class="dashboard-card">
+                    <h2>Subject &amp; Faculty Assignment System</h2>
+                    <p style="color:var(--text-muted); margin-bottom:1.5rem;">As a Class Teacher, you have full control over subjects and who teaches them.</p>
+                    <div style="margin-bottom: 2rem; padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 0.5rem; background: rgba(15, 23, 42, 0.4);">
+                        <h3>Create New Subject</h3>
+                        <form id="create-subject-form" class="inline-form" style="margin-top: 1rem;">
+                            <input type="text" id="new-sub-name" placeholder="Subject Name (e.g. Mathematics)" class="form-control" required>
+                            <input type="text" id="new-sub-code" placeholder="Code (e.g. MAT101)" class="form-control" required style="max-width: 150px;">
+                            <button type="submit" class="btn" style="width: auto; margin-top: 0;">Add Subject</button>
+                        </form>
+                        <div id="subject-create-msg" class="message-container"></div>
+                    </div>
+                    <h3>Manage Assignments</h3>
+                    <div class="table-container">
+                        <table id="workspace-subjects-table">
+                            <thead><tr><th>Name</th><th>Code</th><th>Assigned Teacher</th><th>Action</th></tr></thead>
+                            <tbody></tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Tab: Timetable -->
+            <section id="tab-timetable" class="section-content">
+                <div class="dashboard-card">
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                        <div>
+                            <h2>Class Timetable</h2>
+                            <p id="tt-role-note" style="color:var(--text-muted); margin:0.25rem 0 0; font-size:0.875rem;"></p>
+                        </div>
+                        <span id="tt-save-status" style="font-size:0.85rem; color:var(--success); opacity:0; transition:opacity .3s;"></span>
+                    </div>
+                    <div class="tt-grid" id="tt-grid-container">
+                        <p style="color:var(--text-muted); margin-top:1rem;">Loading timetable…</p>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Attendance Edit History Modal -->
+    <div id="att-history-modal" class="gen-modal">
+        <div class="gen-modal-panel">
+            <div class="gen-modal-header">
+                <h3><i class="fas fa-history" style="margin-right:0.5rem; color:var(--primary-color);"></i>Attendance Edit History</h3>
+                <button class="btn-close-modal" onclick="closeHistoryModal()">&#x2715;</button>
+            </div>
+            <div class="gen-modal-body">
+                <p id="hist-loading" style="color:var(--text-muted); text-align:center; padding:2rem 0;"><i class="fas fa-spinner fa-spin"></i> Loading…</p>
+                <table class="hist-table" id="hist-table" style="display:none;">
+                    <thead><tr><th>Student</th><th>Reg. No</th><th>From</th><th>To</th><th>Changed By</th><th>Time</th></tr></thead>
+                    <tbody id="hist-tbody"></tbody>
+                </table>
+                <p id="hist-empty" style="display:none; text-align:center; color:var(--text-muted); padding:2rem 0;">No edit history for this session yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast -->
+    <div id="ws-toast">
+        <i id="ws-toast-icon" class="fas fa-check-circle"></i>
+        <span id="ws-toast-msg"></span>
+    </div>
+
+    <div id="notif-panel-mount"></div>
+    <script src="js/faculty_class.js"></script>
+    <script src="js/notifications.js"></script>
+</body>
+</html>

@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Student Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Live Timetable Grid */
+        .tt-wrap { overflow-x: auto; margin-top: 1rem; }
+        .tt-wrap table { width: 100%; border-collapse: collapse; min-width: 640px; }
+        .tt-wrap th, .tt-wrap td { padding: 0.55rem 0.4rem; border: 1px solid var(--border-color); text-align: center; font-size: 0.82rem; }
+        .tt-wrap th { background: rgba(99,102,241,0.1); color: var(--primary-color); font-weight: 700; }
+        .tt-wrap td.day-col { font-weight: 600; background: rgba(15,23,42,0.4); text-align:left; padding-left:0.75rem; white-space:nowrap; min-width:90px; }
+        .tt-wrap td.today-row { background: rgba(99,102,241,0.06); }
+        .tt-cell-name { font-weight: 600; font-size: 0.8rem; color: var(--text-main); display:block; }
+        .tt-cell-teacher { font-size: 0.7rem; color: var(--text-muted); display:block; }
+        .tt-empty { color: var(--border-color); }
+
+        /* ══ Marks Section Styles ══ */
+        .perf-overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+        .perf-card {
+            background: rgba(15,23,42,0.6);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+        .perf-card .perf-label { font-size: 0.75rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 0.5rem; }
+        .perf-value { font-size: 2rem; font-weight: 800; }
+        .perf-value.avg { background: linear-gradient(135deg, #6366f1, #8b5cf6); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .perf-value.grade { font-size: 1.75rem; }
+        .grade-Ap,.grade-A  { color: #10b981; }
+        .grade-Bp,.grade-B  { color: #6366f1; }
+        .grade-C            { color: #f59e0b; }
+        .grade-D            { color: #ef4444; }
+
+        /* Subject accordion cards */
+        .marks-subject-card {
+            background: rgba(15,23,42,0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            margin-bottom: 1rem;
+            overflow: hidden;
+            transition: border-color .2s;
+        }
+        .marks-subject-card:hover { border-color: rgba(99,102,241,0.4); }
+        .subject-card-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 1rem 1.25rem; cursor: pointer; user-select: none;
+            transition: background .15s;
+        }
+        .subject-card-header:hover { background: rgba(99,102,241,0.05); }
+        .subject-card-left { display: flex; align-items: center; gap: 0.75rem; }
+        .subject-code-badge {
+            background: rgba(99,102,241,0.15); color: #818cf8;
+            padding: 0.2rem 0.6rem; border-radius: 0.35rem;
+            font-size: 0.72rem; font-weight: 700;
+        }
+        .subject-name-title { font-weight: 700; font-size: 1rem; }
+        .subject-card-right { display: flex; align-items: center; gap: 0.75rem; }
+        .subject-avg-pill {
+            display: inline-flex; align-items: center; gap: 0.35rem;
+            background: rgba(15,23,42,0.6); border: 1px solid var(--border-color);
+            border-radius: 2rem; padding: 0.25rem 0.75rem; font-size: 0.8rem; font-weight: 700;
+        }
+        .grade-chip {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 2rem; height: 2rem; border-radius: 50%; font-weight: 800; font-size: 0.8rem;
+        }
+        .grade-chip.Ap,.grade-chip.A  { background: rgba(16,185,129,0.18); color: #10b981; }
+        .grade-chip.Bp,.grade-chip.B  { background: rgba(99,102,241,0.18); color: #818cf8; }
+        .grade-chip.C                  { background: rgba(245,158,11,0.15); color: #fbbf24; }
+        .grade-chip.D                  { background: rgba(239,68,68,0.15); color: #f87171; }
+        .card-chevron { color: var(--text-muted); font-size: 0.85rem; transition: transform .25s; }
+        .card-chevron.open { transform: rotate(180deg); }
+
+        /* Mark groups inside each subject card */
+        .subject-card-body { display: none; border-top: 1px solid var(--border-color); }
+        .subject-card-body.open { display: block; }
+        .mark-group { padding: 1rem 1.25rem; border-bottom: 1px solid rgba(255,255,255,0.04); }
+        .mark-group:last-child { border-bottom: none; }
+        .mark-group-title {
+            font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em;
+            color: var(--primary-color); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.4rem;
+        }
+        .mark-entries { display: flex; flex-wrap: wrap; gap: 0.6rem; }
+        .mark-entry {
+            display: flex; flex-direction: column; align-items: center;
+            background: rgba(15,23,42,0.7); border: 1px solid var(--border-color);
+            border-radius: 0.6rem; padding: 0.65rem 1rem; min-width: 110px;
+            transition: border-color .15s, transform .15s;
+        }
+        .mark-entry:hover { border-color: rgba(99,102,241,0.35); transform: translateY(-1px); }
+        .mark-entry-name { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; margin-bottom: 0.4rem; text-align: center; }
+        .mark-entry-val { font-size: 1.4rem; font-weight: 800; }
+        .mark-val-high { color: #10b981; }
+        .mark-val-mid  { color: #818cf8; }
+        .mark-val-low  { color: #f87171; }
+        .mark-entry-date { font-size: 0.65rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+        /* Subject total bar */
+        .subject-total-row {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0.75rem 1.25rem; background: rgba(99,102,241,0.05);
+            border-top: 1px solid var(--border-color); font-size: 0.85rem; flex-wrap: wrap; gap: 0.5rem;
+        }
+        .total-label { color: var(--text-muted); }
+        .total-val { font-weight: 800; font-size: 1rem; }
+
+        /* Attendance status chips */
+        .att-chip { display: inline-block; padding: 0.2rem 0.6rem; border-radius: 0.35rem; font-weight: 700; font-size: 0.78rem; }
+        .att-chip.P  { background: rgba(16,185,129,0.15); color: #10b981; }
+        .att-chip.AB { background: rgba(239,68,68,0.13); color: #ef4444; }
+        .att-chip.SR { background: rgba(245,158,11,0.13); color: #fbbf24; }
+        .att-chip.DL { background: rgba(99,102,241,0.14); color: #818cf8; }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>EduNexus</h2>
+                <p id="student-name" style="color:var(--text-muted); font-size:0.875rem; margin-top:0.25rem;"></p>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="#courses" onclick="showSection('courses',this)"><i class="fas fa-book"></i> My Courses</a></li>
+                <li><a href="#schedule" onclick="showSection('schedule',this)"><i class="fas fa-calendar-alt"></i> Class Schedule</a></li>
+                <li><a href="#attendance" onclick="showSection('attendance',this)"><i class="fas fa-user-check"></i> Attendance</a></li>
+                <li><a href="#marks" onclick="showSection('marks',this)"><i class="fas fa-chart-bar"></i> Marks &amp; Performance</a></li>
+                <li><a href="#analytics" onclick="showSection('analytics',this)"><i class="fas fa-chart-pie"></i> Performance Analytics</a></li>
+                <li><a href="survey_student.html"><i class="fas fa-poll"></i> Surveys</a></li>
+                <li><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+                <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+                <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h1>Student Dashboard</h1>
+                    <div id="student-info-badge" style="background: rgba(99,102,241,0.1); color: var(--primary-color); padding: 0.5rem 1rem; border-radius: 2rem; font-weight: 500; font-size: 0.9rem; margin-top:0.5rem; display:inline-block;">
+                        Reg No: <span id="reg-no-display">…</span> | <span id="class-display">…</span>
+                    </div>
+                </div>
+                <div id="notif-bell-mount"></div>
+            </header>
+
+
+            <div class="content-sections">
+
+                <!-- My Courses -->
+                <section id="courses" class="section-content active">
+                    <!-- Upcoming Academic Events Card -->
+                    <div class="dashboard-card" id="upcoming-events-container" style="margin-bottom:1.5rem; border-top:4px solid #818cf8; display:none; background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border-radius:1rem; padding: 1.25rem;">
+                        <h2 style="font-size:1.1rem; margin-bottom:0.75rem; display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+                            <i class="fas fa-calendar-day" style="color:#818cf8;"></i> Upcoming Academic Events
+                        </h2>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;" id="upcoming-events-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <div class="card-grid" id="courses-grid">
+                        <div class="dashboard-card" style="text-align:center;"><p>Loading courses…</p></div>
+                    </div>
+                </section>
+
+                <!-- Class Schedule -->
+                <section id="schedule" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Weekly Timetable</h2>
+                        <p id="tt-loading" style="color:var(--text-muted); margin-top:0.5rem;">Loading timetable…</p>
+                        <div class="tt-wrap" id="student-tt-grid"></div>
+                    </div>
+                </section>
+
+                <!-- Attendance History -->
+                <section id="attendance" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Attendance History</h2>
+                        <div class="table-container">
+                            <table id="attendance-history-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th><th>Hour</th><th>Subject</th><th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ════════════════════ Marks & Performance ════════════════ -->
+                <section id="marks" class="section-content">
+                    <!-- Report Card download strip -->
+                    <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; margin-bottom:1.5rem; padding:1rem 1.25rem; background:linear-gradient(135deg,rgba(99,102,241,0.12),rgba(139,92,246,0.1)); border:1px solid rgba(99,102,241,0.25); border-radius:0.75rem;">
+                        <div>
+                            <p style="font-weight:700; font-size:1rem; margin:0; color:var(--text-main);"><i class="fas fa-file-pdf" style="color:#ef4444; margin-right:0.5rem;"></i>Report Card</p>
+                            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:0.2rem;">Download your official academic report as a formatted PDF.</p>
+                        </div>
+                        <button id="btn-download-report" onclick="downloadReportCard()" style="display:flex; align-items:center; gap:0.6rem; padding:0.7rem 1.4rem; background:linear-gradient(135deg,#6366f1,#8b5cf6); color:#fff; border:none; border-radius:0.55rem; font-weight:700; font-size:0.875rem; cursor:pointer; transition:opacity .2s, transform .1s; white-space:nowrap;" onmouseover="this.style.opacity='.87'" onmouseout="this.style.opacity='1'">
+                            <i class="fas fa-download"></i> Download Report Card
+                        </button>
+                    </div>
+
+                    <div class="dashboard-card" style="margin-bottom:1.5rem;">
+                        <h2 style="margin-bottom:1.25rem;">Overall Performance</h2>
+                        <div class="perf-overview" id="perf-overview">
+                            <div class="perf-card">
+                                <div class="perf-label">Overall Average</div>
+                                <div class="perf-value avg" id="perf-avg">—</div>
+                            </div>
+                            <div class="perf-card">
+                                <div class="perf-label">Overall Grade</div>
+                                <div class="perf-value grade" id="perf-grade">—</div>
+                            </div>
+                            <div class="perf-card">
+                                <div class="perf-label">Subjects Tracked</div>
+                                <div class="perf-value" id="perf-subjects" style="color:var(--primary-color);">—</div>
+                            </div>
+                            <div class="perf-card">
+                                <div class="perf-label">Evaluations Done</div>
+                                <div class="perf-value" id="perf-evals" style="color:#f59e0b;">—</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <h2 style="font-size:1.2rem; font-weight:700; margin-bottom:1rem; color:var(--text-main);">
+                        <i class="fas fa-layer-group" style="color:var(--primary-color); margin-right:0.5rem;"></i>Subject-wise Marks
+                    </h2>
+                    <div id="marks-subjects-container">
+                        <p style="color:var(--text-muted); text-align:center; padding:2rem 0;">Loading marks…</p>
+                    </div>
+                </section>
+
+                <!-- ════════════════════ Personal Performance Analytics ════════════════ -->
+                <section id="analytics" class="section-content">
+                    <div class="dashboard-card" style="margin-bottom:1.5rem; border-left: 4px solid var(--primary-color);">
+                        <h2 style="margin-bottom:0.5rem;"><i class="fas fa-chart-bar" style="color:var(--primary-color); margin-right:0.5rem;"></i>My Performance Summary & Standing</h2>
+                        <p style="color:var(--text-muted); font-size:0.82rem; margin:0;">Detailed analytical metrics and comparative class benchmarks.</p>
+                    </div>
+
+                    <div class="metrics-summary-grid" style="display:grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap:1rem; margin-bottom:1.5rem;">
+                        <div class="metric-widget" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:0.75rem; padding:1.25rem; text-align:center; border-top:4px solid var(--primary-color);">
+                            <div class="metric-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom:0.4rem;">Class Rank Position</div>
+                            <div class="metric-val" id="analytics-rank" style="font-size:1.8rem; font-weight:800;">—</div>
+                        </div>
+                        <div class="metric-widget" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:0.75rem; padding:1.25rem; text-align:center; border-top:4px solid #10b981;">
+                            <div class="metric-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom:0.4rem;">Marks Average</div>
+                            <div class="metric-val" id="analytics-marks" style="font-size:1.8rem; font-weight:800; color:#10b981;">—</div>
+                        </div>
+                        <div class="metric-widget" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:0.75rem; padding:1.25rem; text-align:center; border-top:4px solid #fbbf24;">
+                            <div class="metric-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom:0.4rem;">Attendance Rate</div>
+                            <div class="metric-val" id="analytics-attendance" style="font-size:1.8rem; font-weight:800; color:#fbbf24;">—</div>
+                        </div>
+                        <div class="metric-widget" style="background:rgba(15,23,42,0.6); border:1px solid var(--border-color); border-radius:0.75rem; padding:1.25rem; text-align:center; border-top:4px solid #c084fc;">
+                            <div class="metric-title" style="font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); margin-bottom:0.4rem;">Assignment Rate</div>
+                            <div class="metric-val" id="analytics-assignments" style="font-size:1.8rem; font-weight:800; color:#c084fc;">—</div>
+                        </div>
+                    </div>
+
+                    <div class="card-grid" style="display:grid; grid-template-columns: 2fr 1fr; gap:1.5rem; margin-bottom: 2rem;">
+                        <!-- Left: Benchmark breakdown -->
+                        <div class="dashboard-card" style="padding:1.5rem; background:rgba(30,41,59,0.45); border:1px solid var(--border-color); border-radius:1rem;">
+                            <h3 style="margin-bottom:1rem; font-size:1.05rem; font-weight:700;"><i class="fas fa-balance-scale" style="color:var(--primary-color);"></i> My Benchmarks vs Class Average</h3>
+                            
+                            <div class="distribution-grid" style="display:flex; flex-direction:column; gap:1.25rem;">
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                                        <span>My Marks Average vs Class Average</span>
+                                        <strong><span id="benchmark-my-marks">—</span> / <span id="benchmark-class-marks">—</span></strong>
+                                    </div>
+                                    <div class="dist-bar-bg" style="height:8px; background:rgba(15,23,42,0.5); border-radius:4px; overflow:hidden; position:relative;">
+                                        <div class="dist-bar-fill" id="benchmark-marks-fill" style="height:100%; background:#10b981; width:0%;"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                                        <span>My Attendance Rate vs Class Average</span>
+                                        <strong><span id="benchmark-my-att">—</span> / <span id="benchmark-class-att">—</span></strong>
+                                    </div>
+                                    <div class="dist-bar-bg" style="height:8px; background:rgba(15,23,42,0.5); border-radius:4px; overflow:hidden; position:relative;">
+                                        <div class="dist-bar-fill" id="benchmark-att-fill" style="height:100%; background:#fbbf24; width:0%;"></div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:0.35rem;">
+                                        <span>My Assignment Completion vs Class Average</span>
+                                        <strong><span id="benchmark-my-assign">—</span> / <span id="benchmark-class-assign">—</span></strong>
+                                    </div>
+                                    <div class="dist-bar-bg" style="height:8px; background:rgba(15,23,42,0.5); border-radius:4px; overflow:hidden; position:relative;">
+                                        <div class="dist-bar-fill" id="benchmark-assign-fill" style="height:100%; background:#c084fc; width:0%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Alerts & Trends -->
+                        <div style="display:flex; flex-direction:column; gap:1rem;">
+                            <div class="dashboard-card" style="padding:1.25rem; background:rgba(30,41,59,0.45); border:1px solid var(--border-color); border-radius:1rem;">
+                                <h4 style="margin:0 0 0.5rem; font-size:0.9rem; text-transform:uppercase; color:var(--text-muted);">Risk Status Alerts</h4>
+                                <div id="analytics-alert-container">
+                                    <!-- Dynamic risk severity warning -->
+                                </div>
+                            </div>
+
+                            <div class="dashboard-card" style="padding:1.25rem; background:rgba(30,41,59,0.45); border:1px solid var(--border-color); border-radius:1rem;">
+                                <h4 style="margin:0 0 0.5rem; font-size:0.9rem; text-transform:uppercase; color:var(--text-muted);">Performance Trend</h4>
+                                <div id="analytics-trend-container">
+                                    <!-- Dynamic trend badge -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <div id="notif-panel-mount"></div>
+    <script src="js/student.js"></script>
+    <script src="js/notifications.js"></script>
+</body>
+</html>

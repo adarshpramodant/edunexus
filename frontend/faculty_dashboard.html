@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Faculty Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>EduNexus Faculty</h2>
+            </div>
+            <ul class="nav-links">
+                <li class="active"><a href="#classes" onclick="showSection('classes')"><i class="fas fa-chalkboard-teacher"></i> My Classes</a></li>
+                <li><a href="#attendance" onclick="showSection('attendance')"><i class="fas fa-clipboard-check"></i> Attendance</a></li>
+                <li><a href="#marks" onclick="showSection('marks')"><i class="fas fa-star"></i> Marks</a></li>
+                <li><a href="survey_manage.html"><i class="fas fa-poll"></i> Surveys</a></li>
+                <li><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+                <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+                <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                <li><a href="analytics.html"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar" style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;">
+                <div>
+                    <h1>Faculty Dashboard</h1>
+                    <p id="faculty-name-display" style="color:var(--text-muted); font-size:0.875rem; margin-top:0.25rem;"></p>
+                </div>
+                <div id="notif-bell-mount"></div>
+            </header>
+
+            <div class="content-sections">
+                
+                <!-- My Classes Section -->
+                <section id="classes" class="section-content active">
+                    <!-- Upcoming Academic Events Card -->
+                    <div class="dashboard-card" id="upcoming-events-container" style="margin-bottom:1.5rem; border-top:4px solid #818cf8; display:none; background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border-radius:1rem; padding: 1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                            <h2 style="font-size:1.1rem; margin:0; display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+                                <i class="fas fa-calendar-day" style="color:#818cf8;"></i> Upcoming Academic Events
+                            </h2>
+                            <a href="calendar.html" class="btn" style="padding:0.4rem 0.8rem; font-size:0.72rem; margin:0;"><i class="fas fa-plus"></i> Create Event</a>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;" id="upcoming-events-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+
+                    <!-- Analytics Quick Widget -->
+                    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap:1.25rem; margin-bottom:1.5rem;" id="classes-quick-widgets">
+                        <div class="dashboard-card" style="border-left: 4px solid var(--primary-color);">
+                            <h2 style="font-size:1.05rem; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+                                <i class="fas fa-chart-pie" style="color:var(--primary-color);"></i> Class Performance Insights
+                            </h2>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Summary of average marks and attendance across your classes.</p>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.82rem;">Avg Attendance: <strong id="quick-avg-att">—</strong></span>
+                                <a href="analytics.html" class="btn" style="padding:0.4rem 0.8rem; font-size:0.72rem; margin:0;"><i class="fas fa-arrow-right"></i> Full Insights</a>
+                            </div>
+                        </div>
+
+                        <div class="dashboard-card" style="border-left: 4px solid #ef4444;">
+                            <h2 style="font-size:1.05rem; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+                                <i class="fas fa-exclamation-triangle" style="color:#ef4444;"></i> At-Risk Students Alerts
+                            </h2>
+                            <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Early detection of students needing academic support.</p>
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="font-size:0.82rem;">Students At Risk: <strong id="quick-at-risk-count" style="color:#ef4444;">—</strong></span>
+                                <a href="analytics.html" class="btn" style="padding:0.4rem 0.8rem; font-size:0.72rem; margin:0; background:#ef4444; border-color:#ef4444; color:white;"><i class="fas fa-eye"></i> View Alerts</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="dashboard-card">
+                        <h2>Assigned Classes</h2>
+                        <div class="table-container">
+                            <table id="my-classes-table">
+                                <thead>
+                                    <tr>
+                                        <th>Class Name</th>
+                                        <th>My Roles</th>
+                                        <th>My Subjects</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Attendance Section -->
+                <section id="attendance" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Record Attendance</h2>
+                        <form id="attendance-filter-form" class="inline-form" style="flex-wrap: wrap;">
+                            <select id="att-class" class="form-control form-select" required onchange="loadClassSubjectsForAttendance()">
+                                <option value="" disabled selected>Select Class</option>
+                            </select>
+                            <select id="att-subject" class="form-control form-select" required>
+                                <option value="" disabled selected>Select Subject</option>
+                            </select>
+                            <input type="date" id="att-date" class="form-control" required>
+                            <select id="att-hour" class="form-control form-select" required>
+                                <option value="" disabled selected>Select Hour</option>
+                                <option value="1">1st Hour</option>
+                                <option value="2">2nd Hour</option>
+                                <option value="3">3rd Hour</option>
+                                <option value="4">4th Hour</option>
+                                <option value="5">5th Hour</option>
+                                <option value="6">6th Hour</option>
+                            </select>
+                            <button type="submit" class="btn" style="flex: unset; width: max-content; padding: 0.8rem 2rem; margin-top:0;">Fetch</button>
+                        </form>
+
+                        <div id="attendance-sheet-container" style="display:none; margin-top:2rem;">
+                            <h3>Attendance Sheet</h3>
+                            <div class="table-container">
+                                <table id="attendance-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Register No</th>
+                                            <th>Name</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <button onclick="saveAttendance()" class="btn" style="margin-top:1.5rem; max-width:200px;">Save Attendance</button>
+                            <div id="attendance-msg" class="message-container"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Marks Section -->
+                <section id="marks" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Upload Marks</h2>
+                        <form id="marks-filter-form" class="inline-form" style="flex-wrap: wrap;">
+                            <select id="marks-class" class="form-control form-select" required onchange="loadClassSubjectsForMarks()">
+                                <option value="" disabled selected>Select Class</option>
+                            </select>
+                            <select id="marks-subject" class="form-control form-select" required>
+                                <option value="" disabled selected>Select Subject</option>
+                            </select>
+                            <select id="marks-type" class="form-control form-select" required>
+                                <option value="" disabled selected>Mark Type</option>
+                                <option value="Internal">Internal</option>
+                                <option value="Assignment">Assignment</option>
+                                <option value="Lab">Lab</option>
+                                <option value="Activity">Activity</option>
+                            </select>
+                            <input type="text" id="marks-name" placeholder="E.g., Assignment 1" class="form-control" required>
+                            <button type="submit" class="btn" style="flex: unset; width: max-content; padding: 0.8rem 2rem; margin-top:0;">Load Roster</button>
+                        </form>
+
+                        <div id="marks-sheet-container" style="display:none; margin-top:2rem;">
+                            <h3>Marks Entry</h3>
+                            <div class="table-container">
+                                <table id="marks-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Register No</th>
+                                            <th>Name</th>
+                                            <th>Marks (Number)</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                            <button onclick="saveMarks()" class="btn" style="margin-top:1.5rem; max-width:200px;">Save Marks</button>
+                            <div id="marks-msg" class="message-container"></div>
+                        </div>
+                    </div>
+                </section>
+                
+            </div>
+        </main>
+    </div>
+
+    <div id="notif-panel-mount"></div>
+    <script src="js/faculty.js"></script>
+    <script src="js/notifications.js"></script>
+</body>
+</html>

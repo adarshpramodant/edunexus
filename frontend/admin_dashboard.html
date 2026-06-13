@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Admin Dashboard</title>
+    <meta name="description" content="EduNexus Admin Dashboard — manage departments, classes, users, faculty assignments, and semester promotions.">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* ── Manage Users: sub-tabs ── */
+        .sub-tabs { display:flex; gap:.5rem; margin-bottom:1.5rem; flex-wrap:wrap; }
+        .sub-tab {
+            padding:.5rem 1.2rem; border-radius:2rem; border:1px solid var(--border-color);
+            background:transparent; color:var(--text-muted); cursor:pointer;
+            font-family:inherit; font-size:.85rem; font-weight:600; transition:all .2s;
+        }
+        .sub-tab.active { background:var(--primary-color); color:#fff; border-color:var(--primary-color); }
+        .sub-tab:hover:not(.active) { border-color:rgba(99,102,241,.4); color:var(--text-main); }
+        .sub-panel { display:none; animation:fadeIn .3s ease; }
+        .sub-panel.active { display:block; }
+
+        /* ── Search bar ── */
+        .search-bar {
+            display:flex; align-items:center; gap:.5rem; margin-bottom:1.25rem;
+            background:rgba(15,23,42,.5); border:1px solid var(--border-color);
+            border-radius:.65rem; padding:.1rem .5rem; max-width:360px; transition:border-color .2s;
+        }
+        .search-bar:focus-within { border-color:var(--primary-color); }
+        .search-bar i { color:var(--text-muted); font-size:.85rem; }
+        .search-bar input {
+            flex:1; background:none; border:none; color:var(--text-main);
+            font-family:inherit; font-size:.88rem; padding:.55rem .25rem; outline:none;
+        }
+
+        /* ── User row ── */
+        .user-row {
+            background:var(--bg-card); border:1px solid var(--border-color); border-radius:.75rem;
+            padding:1rem 1.25rem; margin-bottom:.6rem; display:flex; align-items:center;
+            gap:1rem; flex-wrap:wrap; transition:border-color .2s;
+        }
+        .user-row:hover { border-color:rgba(99,102,241,.25); }
+        .user-avatar {
+            width:40px; height:40px; border-radius:50%; display:flex;
+            align-items:center; justify-content:center; font-weight:800;
+            font-size:.85rem; color:white; flex-shrink:0;
+        }
+        .user-avatar.stu { background:linear-gradient(135deg,#818cf8,#6366f1); }
+        .user-avatar.fac { background:linear-gradient(135deg,#34d399,#059669); }
+        .user-info { flex:1; min-width:180px; }
+        .user-name { font-weight:700; font-size:.92rem; margin-bottom:.15rem; }
+        .user-email { font-size:.78rem; color:var(--text-muted); }
+        .user-details { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; }
+        .detail-chip {
+            font-size:.72rem; font-weight:600; padding:.2rem .6rem; border-radius:1rem;
+            background:rgba(99,102,241,.1); color:#818cf8; white-space:nowrap;
+        }
+        .detail-chip.green { background:rgba(16,185,129,.1); color:#34d399; }
+        .detail-chip.amber { background:rgba(251,191,36,.1); color:#fbbf24; }
+        .detail-chip.red   { background:rgba(239,68,68,.1); color:#f87171; }
+        .user-actions { display:flex; gap:.4rem; flex-shrink:0; flex-wrap:wrap; }
+        .act-btn {
+            padding:.35rem .7rem; border-radius:.5rem; font-size:.78rem; font-weight:600;
+            border:1px solid var(--border-color); background:transparent; color:var(--text-main);
+            cursor:pointer; font-family:inherit; transition:all .15s;
+            display:inline-flex; align-items:center; gap:.3rem;
+        }
+        .act-btn:hover { border-color:var(--primary-color); color:var(--primary-color); background:rgba(99,102,241,.06); }
+        .act-btn.danger { border-color:rgba(239,68,68,.25); color:#f87171; }
+        .act-btn.danger:hover { background:rgba(239,68,68,.1); border-color:#f87171; }
+
+        /* ── Modal ── */
+        .modal-overlay {
+            position:fixed; inset:0; background:rgba(0,0,0,.55); z-index:1000;
+            display:none; justify-content:center; align-items:center; padding:1rem;
+            animation:fadeIn .2s ease;
+        }
+        .modal-overlay.open { display:flex; }
+        .modal-box {
+            background:var(--bg-card); border:1px solid var(--border-color);
+            border-radius:1rem; padding:1.75rem; width:100%; max-width:440px;
+            box-shadow:0 20px 60px rgba(0,0,0,.4); animation:modalPop .25s cubic-bezier(.16,1,.3,1);
+        }
+        @keyframes modalPop { from{opacity:0;transform:scale(.92) translateY(12px)} to{opacity:1;transform:none} }
+        .modal-box h3 { margin:0 0 .25rem; font-size:1.1rem; }
+        .modal-box .modal-desc { color:var(--text-muted); font-size:.85rem; margin-bottom:1.25rem; }
+        .modal-box .form-group { margin-bottom:1rem; }
+        .modal-box label { font-size:.8rem; font-weight:600; color:var(--text-muted); display:block; margin-bottom:.35rem; }
+        .modal-actions { display:flex; gap:.75rem; margin-top:1.25rem; }
+        .modal-actions .btn { flex:1; }
+        .modal-cancel {
+            flex:1; padding:.75rem; border-radius:.5rem; background:transparent;
+            border:1px solid var(--border-color); color:var(--text-main); cursor:pointer;
+            font-family:inherit; font-weight:600; font-size:.9rem; transition:all .15s;
+        }
+        .modal-cancel:hover { background:rgba(255,255,255,.04); }
+        .modal-error { color:var(--error); font-size:.82rem; margin-top:.5rem; display:none; }
+        .modal-error.visible { display:block; }
+
+        /* ── Toast ── */
+        .toast-container {
+            position:fixed; bottom:1.5rem; right:1.5rem; z-index:9999;
+            display:flex; flex-direction:column; gap:.5rem; pointer-events:none;
+        }
+        .toast {
+            padding:.85rem 1.25rem; border-radius:.65rem; font-weight:600; font-size:.88rem;
+            display:flex; align-items:center; gap:.5rem; pointer-events:auto;
+            box-shadow:0 8px 24px rgba(0,0,0,.3); transform:translateX(120%);
+            transition:transform .35s cubic-bezier(.16,1,.3,1), opacity .3s;
+        }
+        .toast.visible { transform:translateX(0); }
+        .toast.success { background:linear-gradient(135deg,#10b981,#059669); color:white; }
+        .toast.error   { background:linear-gradient(135deg,#ef4444,#dc2626); color:white; }
+
+        /* ── Stats / counters ── */
+        .section-stats { display:flex; gap:.75rem; margin-bottom:1.25rem; flex-wrap:wrap; }
+        .section-stat {
+            font-size:.82rem; color:var(--text-muted); display:flex; align-items:center; gap:.35rem;
+        }
+        .section-stat strong { color:var(--text-main); }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>EduNexus Admin</h2></div>
+            <ul class="nav-links">
+                <li class="active"><a href="#overview" onclick="showSection('overview')"><i class="fas fa-home"></i> Overview</a></li>
+                <li><a href="#departments" onclick="showSection('departments')"><i class="fas fa-building"></i> Departments & Semesters</a></li>
+                <li><a href="#classes" onclick="showSection('classes')"><i class="fas fa-chalkboard"></i> Classes</a></li>
+                <li><a href="#users" onclick="showSection('users')"><i class="fas fa-user-plus"></i> Add Users</a></li>
+                <li><a href="#manage-users" onclick="showSection('manage-users')"><i class="fas fa-users-cog"></i> Manage Users</a></li>
+                <li><a href="#assign-faculty" onclick="showSection('assign-faculty')"><i class="fas fa-user-tie"></i> Assign Faculty</a></li>
+                <li><a href="#promotion" onclick="showSection('promotion')"><i class="fas fa-level-up-alt"></i> Promote Semester</a></li>
+                <li><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+                <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+                <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+                <li><a href="analytics.html"><i class="fas fa-chart-bar"></i> Analytics</a></li>
+            </ul>
+            <div class="sidebar-footer">
+                <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar"><h1>Admin Dashboard</h1></header>
+
+            <div class="content-sections">
+                <!-- Overview Section -->
+                <section id="overview" class="section-content active">
+                    <div class="stats-grid">
+                        <div class="stat-card"><h3>Total Students</h3><p id="stat-students" class="stat-value">…</p></div>
+                        <div class="stat-card"><h3>Total Faculty</h3><p id="stat-faculty" class="stat-value">…</p></div>
+                        <div class="stat-card"><h3>Departments</h3><p id="stat-departments" class="stat-value">…</p></div>
+                        <div class="stat-card"><h3>Classes</h3><p id="stat-classes" class="stat-value">…</p></div>
+                    </div>
+
+                    <!-- Institution Performance Summary Widget -->
+                    <div class="dashboard-card" style="margin-top:1.5rem; border-left:4px solid var(--primary-color);">
+                        <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+                            <div>
+                                <h2 style="font-size:1.1rem; margin-bottom:0.4rem; display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+                                    <i class="fas fa-chart-line" style="color:var(--primary-color);"></i> Institution Performance Summary
+                                </h2>
+                                <p style="font-size:0.8rem; color:var(--text-muted); margin:0;">Real-time educational analytics and threshold-based risk monitoring.</p>
+                            </div>
+                            <div style="display:flex; gap:1.5rem; align-items:center; flex-wrap:wrap;">
+                                <span style="font-size:0.85rem;">Students At Risk: <strong id="admin-quick-at-risk" style="color:#ef4444;">—</strong></span>
+                                <span style="font-size:0.85rem;">Avg Attendance: <strong id="admin-quick-avg-att" style="color:#fbbf24;">—</strong></span>
+                                <a href="analytics.html" class="btn" style="padding:0.5rem 1rem; font-size:0.75rem; margin:0;"><i class="fas fa-arrow-right"></i> Open Analytics</a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Upcoming Academic Events Card -->
+                    <div class="dashboard-card" id="upcoming-events-container" style="margin-top:1.5rem; border-top:4px solid #818cf8; display:none; background: rgba(30, 41, 59, 0.4); backdrop-filter: blur(12px); border-radius:1rem; padding: 1.25rem;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.75rem; flex-wrap:wrap; gap:0.5rem;">
+                            <h2 style="font-size:1.1rem; margin:0; display:flex; align-items:center; gap:0.5rem; font-weight:700;">
+                                <i class="fas fa-calendar-day" style="color:#818cf8;"></i> Upcoming Academic Events
+                            </h2>
+                            <a href="calendar.html" class="btn" style="padding:0.4rem 0.8rem; font-size:0.72rem; margin:0;"><i class="fas fa-calendar-alt"></i> Manage Calendar</a>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap:1rem;" id="upcoming-events-list">
+                            <!-- Dynamically populated -->
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Departments & Semesters Section -->
+                <section id="departments" class="section-content">
+                    <div class="card-grid">
+                        <div class="dashboard-card">
+                            <h2>Manage Departments</h2>
+                            <form id="add-dept-form" class="inline-form">
+                                <input type="text" id="dept-name" placeholder="Department Name" required class="form-control">
+                                <button type="submit" class="btn">Add</button>
+                            </form>
+                            <div class="table-container">
+                                <table id="dept-table"><thead><tr><th>ID</th><th>Name</th><th>Action</th></tr></thead><tbody></tbody></table>
+                            </div>
+                        </div>
+                        <div class="dashboard-card">
+                            <h2>Configure Semesters</h2>
+                            <form id="add-sem-form" class="inline-form">
+                                <input type="number" id="sem-number" placeholder="Semester Number" required class="form-control">
+                                <button type="submit" class="btn">Add</button>
+                            </form>
+                            <div class="table-container">
+                                <table id="sem-table"><thead><tr><th>ID</th><th>Number</th></tr></thead><tbody></tbody></table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Setup Classes Section -->
+                <section id="classes" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Create New Class</h2>
+                        <form id="add-class-form" class="grid-form">
+                            <select id="class-dept" class="form-control form-select" required></select>
+                            <select id="class-sem" class="form-control form-select" required></select>
+                            <input type="text" id="class-section" placeholder="Section (e.g., A, B)" class="form-control" required>
+                            <button type="submit" class="btn">Create Class</button>
+                        </form>
+                        <div class="message-container" id="class-msg"></div>
+                        <h3 style="margin-top:2rem;">Existing Classes</h3>
+                        <div class="table-container">
+                            <table id="classes-table"><thead><tr><th>ID</th><th>Department</th><th>Semester</th><th>Section</th></tr></thead><tbody></tbody></table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Add Users Section -->
+                <section id="users" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Add User to Institution</h2>
+                        <p class="subtitle">User must have already signed up to EduNexus.</p>
+                        <form id="add-user-form" class="grid-form">
+                            <input type="email" id="user-email" placeholder="User Email" class="form-control" required>
+                            <select id="user-role" class="form-control form-select" required onchange="toggleStudentFields()">
+                                <option value="student">Student</option>
+                                <option value="faculty">Faculty</option>
+                            </select>
+                            <input type="text" id="user-reg-no" placeholder="Register Number" class="form-control student-field">
+                            <select id="user-class" class="form-control form-select student-field"></select>
+                            <button type="submit" class="btn">Add User</button>
+                        </form>
+                        <div class="message-container" id="add-user-msg"></div>
+                    </div>
+                </section>
+
+                <!-- Assign Faculty Section -->
+                <section id="assign-faculty" class="section-content">
+                    <div class="dashboard-card">
+                        <h2>Assign Faculty to Classes</h2>
+                        <form id="assign-faculty-form" class="grid-form">
+                            <select id="assign-class" class="form-control form-select" required></select>
+                            <select id="assign-teacher" class="form-control form-select" required></select>
+                            <select id="assign-role" class="form-control form-select" required>
+                                <option value="" disabled selected>Select Role</option>
+                                <option value="class_teacher">Class Teacher</option>
+                                <option value="vice_class_teacher">Vice Class Teacher</option>
+                                <option value="subject_teacher">Subject Teacher</option>
+                            </select>
+                            <button type="submit" class="btn">Assign Faculty</button>
+                        </form>
+                        <div class="message-container" id="assign-faculty-msg"></div>
+                        <h3 style="margin-top:2rem;">Assigned Faculty List</h3>
+                        <div class="table-container">
+                            <table id="assign-faculty-table"><thead><tr><th>Teacher Name</th><th>Class</th><th>Role</th></tr></thead><tbody></tbody></table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ═══════ MANAGE USERS SECTION ═══════ -->
+                <section id="manage-users" class="section-content">
+                    <div class="sub-tabs">
+                        <button class="sub-tab active" onclick="showSubTab('stu',this)" id="stab-stu">
+                            <i class="fas fa-user-graduate"></i> Students
+                        </button>
+                        <button class="sub-tab" onclick="showSubTab('fac',this)" id="stab-fac">
+                            <i class="fas fa-chalkboard-teacher"></i> Faculty
+                        </button>
+                    </div>
+
+                    <!-- Students sub-panel -->
+                    <div id="sub-stu" class="sub-panel active">
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="stu-search" placeholder="Search by name, register number, or class…" oninput="filterStudents()">
+                        </div>
+                        <div class="section-stats" id="stu-stats"></div>
+                        <div id="stu-list"><p style="color:var(--text-muted)">Loading…</p></div>
+                    </div>
+
+                    <!-- Faculty sub-panel -->
+                    <div id="sub-fac" class="sub-panel">
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="fac-search" placeholder="Search by name or email…" oninput="filterFaculty()">
+                        </div>
+                        <div class="section-stats" id="fac-stats"></div>
+                        <div id="fac-list"><p style="color:var(--text-muted)">Loading…</p></div>
+                    </div>
+                </section>
+
+                <!-- Promote Semester Section -->
+                <section id="promotion" class="section-content">
+                    <div class="dashboard-card center-card" style="max-width:600px; margin:auto;">
+                        <h2>Semester Promotion System</h2>
+                        <p style="color:var(--text-muted); margin-bottom:1.5rem;">Warning: Promoting will advance all active students to their next semester automatically and reset their class mappings.</p>
+                        <div class="form-group" style="text-align:left; margin-bottom: 1.5rem;">
+                            <label style="font-weight:bold; margin-bottom:0.5rem; display:block;">Data Handling Mode</label>
+                            <select id="promote-mode" class="form-control form-select">
+                                <option value="keep_history" selected>Preserve Academic History (Move to Archive)</option>
+                                <option value="reset">Reset Data (Permanently Delete)</option>
+                            </select>
+                        </div>
+                        <div class="message-container" id="promote-msg" style="display:none; text-align:left;"></div>
+                        <button id="promote-btn" class="btn btn-warning" style="width:100%; font-size:1.1rem; border-radius:0.5rem;" onclick="handlePromoteSemester()"><i class="fas fa-level-up-alt"></i> Promote All Students</button>
+                    </div>
+                </section>
+            </div>
+        </main>
+    </div>
+
+    <!-- ═══ MODAL ═══ -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal-box">
+            <h3 id="modal-title">Action</h3>
+            <p class="modal-desc" id="modal-desc"></p>
+            <div id="modal-body"></div>
+            <div class="modal-error" id="modal-error"></div>
+            <div class="modal-actions">
+                <button class="btn" id="modal-confirm" onclick="modalConfirm()">Confirm</button>
+                <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ═══ TOAST ═══ -->
+    <div class="toast-container" id="toast-container"></div>
+
+    <script src="js/admin.js"></script>
+</body>
+</html>
