@@ -47,6 +47,12 @@ def verify_assignment_teacher_access(cur, user_id, assign_id):
     if not assign:
         return None, "Assignment not found"
     
+    # Allow admins to access any assignment
+    cur.execute("SELECT role FROM Users WHERE id = %s", (user_id,))
+    user = cur.fetchone()
+    if user and user['role'] == 'admin':
+        return assign, None
+    
     if assign['created_by'] == user_id:
         return assign, None
         

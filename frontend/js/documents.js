@@ -2,7 +2,9 @@
 // EduNexus — Enterprise Document Portal JS
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_BASE = 'https://edunexus-quw3.onrender.com/api';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:5000/api'
+    : 'https://edunexus-quw3.onrender.com/api';
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 const institutionId = localStorage.getItem('institution_id');
@@ -49,6 +51,9 @@ function renderSidebar() {
             <li><a href="admin_dashboard.html#assign-faculty"><i class="fas fa-user-tie"></i> Assign Faculty</a></li>
             <li><a href="admin_dashboard.html#promotion"><i class="fas fa-level-up-alt"></i> Promote Semester</a></li>
             <li class="active"><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+            <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+            <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-bar"></i> Analytics</a></li>
         `;
     } else if (role === 'faculty') {
         menuHtml = `
@@ -57,6 +62,9 @@ function renderSidebar() {
             <li><a href="faculty_dashboard.html#marks"><i class="fas fa-star"></i> Marks</a></li>
             <li><a href="survey_manage.html"><i class="fas fa-poll"></i> Surveys</a></li>
             <li class="active"><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+            <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+            <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+            <li><a href="analytics.html"><i class="fas fa-chart-bar"></i> Analytics</a></li>
         `;
     } else if (role === 'student') {
         menuHtml = `
@@ -64,8 +72,11 @@ function renderSidebar() {
             <li><a href="student_dashboard.html#schedule"><i class="fas fa-calendar-alt"></i> Class Schedule</a></li>
             <li><a href="student_dashboard.html#attendance"><i class="fas fa-user-check"></i> Attendance</a></li>
             <li><a href="student_dashboard.html#marks"><i class="fas fa-chart-bar"></i> Marks &amp; Performance</a></li>
+            <li><a href="student_dashboard.html#analytics"><i class="fas fa-chart-pie"></i> Performance Analytics</a></li>
             <li><a href="survey_student.html"><i class="fas fa-poll"></i> Surveys</a></li>
             <li class="active"><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+            <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+            <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
         `;
     }
 

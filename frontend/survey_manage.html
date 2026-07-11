@@ -404,7 +404,10 @@
    EDUNEXUS SURVEY BUILDER — Premium Google-Forms-Style UI
    ═══════════════════════════════════════════════════════════════════════════════ */
 
-const API   = 'https://edunexus-quw3.onrender.com/api/faculty';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:5000/api'
+    : 'https://edunexus-quw3.onrender.com/api';
+const API = `${API_BASE}/faculty`;
 const token = localStorage.getItem('token');
 const role  = localStorage.getItem('role');
 if (!token || role !== 'faculty') window.location.href = 'login.html';

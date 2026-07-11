@@ -1,4 +1,7 @@
-const API_URL = 'https://edunexus-quw3.onrender.com/api/faculty';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:5000/api'
+    : 'https://edunexus-quw3.onrender.com/api';
+const API_URL = `${API_BASE}/faculty`;
 const token = localStorage.getItem('token');
 const role = localStorage.getItem('role');
 
@@ -13,12 +16,23 @@ function getAuthHeaders() {
     };
 }
 
-function showSection(sectionId) {
+function showSection(sectionId, anchor) {
     document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
     
-    document.getElementById(sectionId).classList.add('active');
-    event.currentTarget.parentElement.classList.add('active');
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) targetSection.classList.add('active');
+    
+    let activeItem = null;
+    if (anchor) {
+        activeItem = anchor.parentElement;
+    } else if (typeof event !== 'undefined' && event && event.currentTarget) {
+        activeItem = event.currentTarget.parentElement;
+    } else {
+        const link = document.querySelector(`.nav-links a[href="#${sectionId}"]`);
+        if (link) activeItem = link.parentElement;
+    }
+    if (activeItem) activeItem.classList.add('active');
 
     if (sectionId === 'classes') fetchMyClasses();
     if (sectionId === 'attendance') populateClassDropdowns('att-class');
@@ -245,7 +259,7 @@ async function fetchUpcomingEvents() {
         const list = document.getElementById('upcoming-events-list');
         if (!container || !list) return;
 
-        const res = await fetch('https://edunexus-quw3.onrender.com/api/calendar/events/upcoming', { headers: getAuthHeaders() });
+        const res = await fetch(`${API_BASE}/calendar/events/upcoming`, { headers: getAuthHeaders() });
         if (!res.ok) return;
 
         const events = await res.json();
@@ -283,7 +297,7 @@ async function fetchUpcomingEvents() {
 // Fetch Quick summary metrics for analytics widgets
 async function fetchQuickAnalytics() {
     try {
-        const res = await fetch('https://edunexus-quw3.onrender.com/api/analytics/summary', { headers: getAuthHeaders() });
+        const res = await fetch(`${API_BASE}/analytics/summary`, { headers: getAuthHeaders() });
         if (!res.ok) throw new Error();
         const data = await res.json();
         
@@ -296,7 +310,13 @@ async function fetchQuickAnalytics() {
 
 // Initial Load
 document.addEventListener('DOMContentLoaded', () => {
-    fetchMyClasses();
+    const hash = window.location.hash;
+    if (hash) {
+        const sectionId = hash.substring(1);
+        showSection(sectionId);
+    } else {
+        fetchMyClasses();
+    }
     fetchUpcomingEvents();
     fetchQuickAnalytics();
 });

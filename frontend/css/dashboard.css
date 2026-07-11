@@ -34,6 +34,17 @@
     border-radius: 1rem;
 }
 
+/* ── Section Content Visibility ── */
+.section-content {
+    display: none;
+}
+
+.section-content.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+
+
 /* ── Sidebar ── */
 .sidebar {
     width: 260px;

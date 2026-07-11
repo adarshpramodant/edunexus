@@ -2,7 +2,10 @@
 // EduNexus — Student Dashboard JS  (Marks v2 + Performance)
 // ─────────────────────────────────────────────────────────────────────────────
 
-const API_URL = 'https://edunexus-quw3.onrender.com/api/student';
+const API_BASE = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:5000/api'
+    : 'https://edunexus-quw3.onrender.com/api';
+const API_URL = `${API_BASE}/student`;
 const token   = localStorage.getItem('token');
 const role    = localStorage.getItem('role');
 
@@ -315,7 +318,7 @@ window.downloadReportCard = async function() {
     btn.style.opacity = '0.7';
 
     try {
-        const res = await fetch('https://edunexus-quw3.onrender.com/api/student/report', {
+        const res = await fetch(`${API_BASE}/student/report`, {
             headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` }
         });
 
@@ -368,7 +371,7 @@ async function fetchUpcomingEvents() {
         const list = document.getElementById('upcoming-events-list');
         if (!container || !list) return;
 
-        const res = await fetch('https://edunexus-quw3.onrender.com/api/calendar/events/upcoming', { headers: getAuthHeaders() });
+        const res = await fetch(`${API_BASE}/calendar/events/upcoming`, { headers: getAuthHeaders() });
         if (!res.ok) return;
 
         const events = await res.json();
@@ -406,7 +409,7 @@ async function fetchUpcomingEvents() {
 // ── Analytics Summary (Student Personal Analytics) ──────────────────────────
 async function fetchStudentAnalytics() {
     try {
-        const res = await fetch('https://edunexus-quw3.onrender.com/api/analytics/student', { headers: getAuthHeaders() });
+        const res = await fetch(`${API_BASE}/analytics/student`, { headers: getAuthHeaders() });
         if (!res.ok) throw new Error('Failed to load personal analytics');
         const s = await res.json();
 
@@ -478,7 +481,14 @@ async function fetchStudentAnalytics() {
 // ── Initial Load ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
     fetchProfile();
-    fetchCourses();
+    const hash = window.location.hash;
+    if (hash) {
+        const sectionId = hash.substring(1);
+        const link = document.querySelector(`.nav-links a[href="${hash}"]`);
+        showSection(sectionId, link);
+    } else {
+        fetchCourses();
+    }
     fetchTimetable(); // preload timetable
     fetchUpcomingEvents();
 });

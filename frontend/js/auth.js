@@ -1,4 +1,6 @@
-const API_URL = 'https://edunexus-quw3.onrender.com/api/auth';
+const API_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:'
+    ? 'http://localhost:5000/api/auth'
+    : 'https://edunexus-quw3.onrender.com/api/auth';
 
 function toggleAdminFields() {
     const roleSelect = document.getElementById('role');
