@@ -27,10 +27,10 @@
 
         /* ── Month Grid Card ── */
         .calendar-card {
-            background: rgba(30, 41, 59, 0.4);
+            background: var(--bg-card);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
             border-radius: 1rem;
             padding: 1.5rem;
             display: flex;
@@ -56,7 +56,7 @@
         }
 
         .month-btn {
-            background: rgba(15, 23, 42, 0.5);
+            background: var(--input-bg);
             border: 1px solid var(--border-color);
             color: var(--text-main);
             width: 2.2rem;
@@ -97,7 +97,7 @@
 
         .day-cell {
             aspect-ratio: 1.1;
-            background: rgba(15, 23, 42, 0.25);
+            background: var(--input-bg);
             border: 1px solid rgba(255, 255, 255, 0.03);
             border-radius: 0.5rem;
             padding: 0.4rem;
@@ -110,7 +110,7 @@
         }
 
         .day-cell:hover {
-            background: rgba(30, 41, 59, 0.7);
+            background: rgba(99, 102, 241, 0.1);
             border-color: rgba(99, 102, 241, 0.35);
         }
 
@@ -152,10 +152,10 @@
 
         /* ── Event Details List Pane ── */
         .details-card {
-            background: rgba(30, 41, 59, 0.4);
+            background: var(--bg-card);
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid var(--border-color);
             border-radius: 1rem;
             padding: 1.5rem;
             display: flex;
@@ -183,7 +183,7 @@
         }
 
         .agenda-item {
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--input-bg);
             border: 1px solid rgba(255, 255, 255, 0.05);
             border-radius: 0.75rem;
             padding: 1rem;
@@ -293,7 +293,7 @@
         .search-input {
             flex: 1;
             padding: 0.5rem 1rem;
-            background: rgba(15, 23, 42, 0.4);
+            background: var(--input-bg);
             border: 1px solid var(--border-color);
             border-radius: 1.5rem;
             color: var(--text-main);

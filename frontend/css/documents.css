@@ -16,7 +16,7 @@
 }
 
 .doc-card {
-    background: rgba(30, 41, 59, 0.4);
+    background: var(--bg-card);
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     border: 1px solid rgba(255, 255, 255, 0.08);
@@ -152,7 +152,7 @@
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    background: rgba(15, 23, 42, 0.5);
+    background: var(--input-bg);
     border: 1px solid var(--border-color);
     border-radius: 0.65rem;
     padding: 0.25rem 0.75rem;
@@ -234,7 +234,7 @@
     border-radius: 0.75rem;
     padding: 1.5rem;
     text-align: center;
-    background: rgba(15, 23, 42, 0.25);
+    background: var(--input-bg);
     cursor: pointer;
     transition: border-color 0.2s, background-color 0.2s;
     margin-bottom: 1.25rem;

@@ -112,7 +112,7 @@ async function fetchAssignments() {
 
         if (assigns.length === 0) {
             list.innerHTML = `
-                <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: rgba(30, 41, 59, 0.2); border: 1px dashed var(--border-color); border-radius: 1rem;">
+                <div style="grid-column: 1/-1; text-align: center; padding: 3rem; background: var(--input-bg); border: 1px dashed var(--border-color); border-radius: 1rem;">
                     <i class="fas fa-tasks" style="font-size: 3rem; color: var(--text-muted); margin-bottom: 1rem; opacity: 0.4;"></i>
                     <p style="color: var(--text-muted); font-size: 0.95rem; margin: 0;">No assignments found matching the active filters.</p>
                 </div>

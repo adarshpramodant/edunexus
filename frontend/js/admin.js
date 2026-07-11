@@ -598,7 +598,7 @@ async function fetchUpcomingEvents() {
             else if (e.event_color === 'purple') color = '#c084fc';
             
             list.innerHTML += `
-                <div style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.05); border-left: 4px solid ${color}; padding: 0.85rem; border-radius: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                <div style="background: var(--input-bg); border: 1px solid var(--border-color); border-left: 4px solid ${color}; padding: 0.85rem; border-radius: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem;">
                     <span style="font-size:0.65rem; color:var(--text-muted); font-weight:700; text-transform:uppercase;">${e.event_type.replace('_', ' ')}</span>
                     <h4 style="margin:0; font-size:0.88rem; font-weight:700; color:var(--text-main); white-space:nowrap; overflow:hidden; text-overflow:ellipsis;" title="${e.title}">${e.title}</h4>
                     <span style="font-size:0.75rem; color:var(--text-muted);"><i class="far fa-clock"></i> ${dateStr} at ${timeStr}</span>
