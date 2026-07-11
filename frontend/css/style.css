@@ -11,6 +11,19 @@
     --success: #10b981;
 }
 
+.light-theme {
+    --bg-dark: #f1f5f9;
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --text-main: #0f172a;
+    --text-muted: #475569;
+    --border-color: rgba(15, 23, 42, 0.08);
+    --input-bg: rgba(255, 255, 255, 0.95);
+}
+
+html {
+    font-size: 14px;
+}
+
 * {
     margin: 0;
     padding: 0;
@@ -30,6 +43,13 @@ body {
         radial-gradient(at 50% 0%, hsla(225,39%,30%,0.2) 0, transparent 50%), 
         radial-gradient(at 100% 0%, hsla(339,49%,30%,0.2) 0, transparent 50%);
     background-attachment: fixed;
+}
+
+body.light-theme {
+    background-image: 
+        radial-gradient(at 0% 0%, hsla(253,80%,96%,1) 0, transparent 50%), 
+        radial-gradient(at 50% 0%, hsla(225,80%,94%,0.6) 0, transparent 50%), 
+        radial-gradient(at 100% 0%, hsla(339,80%,94%,0.6) 0, transparent 50%);
 }
 
 /* Glassmorphism Auth Container */

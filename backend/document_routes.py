@@ -188,9 +188,10 @@ def list_documents(current_user):
             assigned_classes = [r['class_id'] for r in cur.fetchall()]
 
             class_clause = ""
+            clause_params = [current_user['user_id']]
             if assigned_classes:
                 class_clause = "OR (d.visibility = 'class' AND d.target_class_id IN %s)"
-                params.append(tuple(assigned_classes))
+                clause_params.append(tuple(assigned_classes))
 
             query += f"""
                 AND (
@@ -200,7 +201,7 @@ def list_documents(current_user):
                     {class_clause}
                 )
             """
-            params.append(current_user['user_id'])
+            params.extend(clause_params)
             query += " AND d.is_archived = %s"
             params.append(is_archived)
 

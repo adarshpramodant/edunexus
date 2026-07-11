@@ -8,6 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
+    <script src="js/theme.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { display:flex; justify-content:initial; align-items:initial; }
@@ -252,12 +253,16 @@
     <!-- Sidebar -->
     <aside class="sidebar">
         <div class="sidebar-header"><h2>EduNexus</h2></div>
-        <ul class="nav-links">
-            <li><a href="student_dashboard.html"><i class="fas fa-home"></i> Dashboard</a></li>
-            <li class="active"><a href="#"><i class="fas fa-poll"></i> Surveys</a></li>
+        <ul class="nav-links" id="sidebar-menu">
+            <!-- Sidebar links will render dynamically based on user JWT roles -->
         </ul>
-        <div class="sidebar-footer">
-            <button onclick="logout()" class="btn-logout"><i class="fas fa-sign-out-alt"></i> Logout</button>
+        <div class="sidebar-footer" style="display: flex; gap: 0.5rem; align-items: center; padding: 1rem 1rem;">
+            <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="flex: 1; margin: 0; padding: 0.75rem 0;" title="Toggle Theme">
+                <i class="fas fa-moon"></i> Dark
+            </button>
+            <button onclick="logout()" class="btn-logout" style="flex: 1; margin: 0; padding: 0.75rem 0;">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
         </div>
     </aside>
 
@@ -650,8 +655,32 @@ function showSuccess() {
 function esc(s)   { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function escJs(s) { return String(s||'').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/"/g,'\\"'); }
 
+function renderSidebar() {
+    const menu = document.getElementById('sidebar-menu');
+    if (!menu) return;
+
+    let menuHtml = '';
+    if (role === 'student') {
+        menuHtml = `
+            <li><a href="student_dashboard.html#courses"><i class="fas fa-book"></i> My Courses</a></li>
+            <li><a href="student_dashboard.html#schedule"><i class="fas fa-calendar-alt"></i> Class Schedule</a></li>
+            <li><a href="student_dashboard.html#attendance"><i class="fas fa-user-check"></i> Attendance</a></li>
+            <li><a href="student_dashboard.html#marks"><i class="fas fa-chart-bar"></i> Marks &amp; Performance</a></li>
+            <li><a href="student_dashboard.html#analytics"><i class="fas fa-chart-pie"></i> Performance Analytics</a></li>
+            <li class="active"><a href="survey_student.html"><i class="fas fa-poll"></i> Surveys</a></li>
+            <li><a href="documents.html"><i class="fas fa-folder-open"></i> Documents</a></li>
+            <li><a href="assignments.html"><i class="fas fa-tasks"></i> Assignments</a></li>
+            <li><a href="calendar.html"><i class="fas fa-calendar-alt"></i> Calendar</a></li>
+        `;
+    }
+    menu.innerHTML = menuHtml;
+}
+
 // ── Init ──
-document.addEventListener('DOMContentLoaded', showList);
+document.addEventListener('DOMContentLoaded', () => {
+    renderSidebar();
+    showList();
+});
 </script>
 </body>
 </html>

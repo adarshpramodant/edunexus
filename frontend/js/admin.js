@@ -16,6 +16,15 @@ function getAuthHeaders() {
 }
 
 function showSection(sectionId, anchor) {
+    if (typeof event !== 'undefined' && event) {
+        event.preventDefault();
+    }
+    try {
+        history.pushState(null, null, '#' + sectionId);
+    } catch (e) {
+        window.location.hash = sectionId;
+    }
+
     document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
     

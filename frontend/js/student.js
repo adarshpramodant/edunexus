@@ -22,10 +22,31 @@ function getAuthHeaders() {
 
 // ── Nav ───────────────────────────────────────────────────────────────────────
 function showSection(sectionId, anchor) {
+    if (typeof event !== 'undefined' && event) {
+        event.preventDefault();
+    }
+    try {
+        history.pushState(null, null, '#' + sectionId);
+    } catch (e) {
+        window.location.hash = sectionId;
+    }
+
     document.querySelectorAll('.section-content').forEach(el => el.classList.remove('active'));
     document.querySelectorAll('.nav-links li').forEach(el => el.classList.remove('active'));
-    document.getElementById(sectionId).classList.add('active');
-    if (anchor) anchor.parentElement.classList.add('active');
+    const targetSection = document.getElementById(sectionId);
+    if (targetSection) targetSection.classList.add('active');
+    
+    // Fallback if anchor is not passed but event is present
+    let activeItem = null;
+    if (anchor) {
+        activeItem = anchor.parentElement;
+    } else if (typeof event !== 'undefined' && event && event.currentTarget) {
+        activeItem = event.currentTarget.parentElement;
+    } else {
+        const link = document.querySelector(`.nav-links a[href="#${sectionId}"]`);
+        if (link) activeItem = link.parentElement;
+    }
+    if (activeItem) activeItem.classList.add('active');
 
     if (sectionId === 'attendance') fetchAttendanceHistory();
     if (sectionId === 'marks')      fetchMarksAndPerformance();
