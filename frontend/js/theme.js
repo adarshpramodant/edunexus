@@ -1,4 +1,4 @@
-// ── EduNexus Theme Management Script ──
+// ── EduNexus Theme and Session Management Script ──
 
 (function() {
     // Immediate execution to prevent flash of dark theme
@@ -6,16 +6,20 @@
     if (theme === 'light') {
         document.documentElement.classList.add('light-theme');
         document.addEventListener('DOMContentLoaded', () => {
-            document.body.classList.add('light-theme');
+            if (document.body) {
+                document.body.classList.add('light-theme');
+            }
         });
     }
 
     window.toggleTheme = function() {
         const docClass = document.documentElement.classList;
-        const bodyClass = document.body.classList;
+        const bodyClass = document.body ? document.body.classList : null;
         
         const isLight = docClass.toggle('light-theme');
-        bodyClass.toggle('light-theme', isLight);
+        if (bodyClass) {
+            bodyClass.toggle('light-theme', isLight);
+        }
         
         localStorage.setItem('theme', isLight ? 'light' : 'dark');
         updateThemeBtnIcon();
@@ -25,7 +29,7 @@
         const btn = document.getElementById('theme-toggle-btn');
         if (!btn) return;
         const isLight = document.documentElement.classList.contains('light-theme');
-        btn.innerHTML = isLight ? '<i class="fas fa-sun"></i> Light' : '<i class="fas fa-moon"></i> Dark';
+        btn.innerHTML = isLight ? '<i class="fas fa-sun"></i> Light Mode' : '<i class="fas fa-moon"></i> Dark Mode';
     };
 
     window.applySavedTheme = function() {
@@ -36,6 +40,12 @@
             document.body.classList.toggle('light-theme', isLight);
         }
         updateThemeBtnIcon();
+    };
+
+    // Global Logout Function - shared across all pages
+    window.logout = function() {
+        localStorage.clear();
+        window.location.href = 'login.html';
     };
 
     document.addEventListener('DOMContentLoaded', applySavedTheme);

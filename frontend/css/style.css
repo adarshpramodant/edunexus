@@ -11,9 +11,9 @@
     --success: #10b981;
 }
 
-.light-theme {
+:root.light-theme, html.light-theme, body.light-theme {
     --bg-dark: #f1f5f9;
-    --bg-card: rgba(255, 255, 255, 0.8);
+    --bg-card: rgba(255, 255, 255, 0.85);
     --text-main: #0f172a;
     --text-muted: #475569;
     --border-color: rgba(15, 23, 42, 0.08);

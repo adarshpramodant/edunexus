@@ -287,13 +287,9 @@
         <ul class="nav-links" id="sidebar-menu">
             <!-- Sidebar links will render dynamically based on user JWT roles -->
         </ul>
-        <div class="sidebar-footer" style="display: flex; gap: 0.5rem; align-items: center; padding: 1rem 1rem;">
-            <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="flex: 1; margin: 0; padding: 0.75rem 0;" title="Toggle Theme">
-                <i class="fas fa-moon"></i> Dark
-            </button>
-            <button onclick="logout()" class="btn-logout" style="flex: 1; margin: 0; padding: 0.75rem 0;">
-                <i class="fas fa-sign-out-alt"></i> Logout
-            </button>
+        <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
+            <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="width: 100%; margin: 0;"><i class="fas fa-moon"></i> Dark Mode</button>
+            <button onclick="logout()" class="btn-logout" style="width: 100%; margin: 0;"><i class="fas fa-sign-out-alt"></i> Logout</button>
         </div>
     </aside>
 
