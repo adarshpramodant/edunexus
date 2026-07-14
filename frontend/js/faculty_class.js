@@ -698,6 +698,276 @@ async function saveTimetableSlot(selectEl) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// EXCEL/CSV IMPORT & EXPORT TEMPLATES (SheetJS)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Marks Template Downloader */
+window.downloadMarksTemplate = function() {
+    if (!currentStudents.length) {
+        showToast("Please load the student list first.", "warning");
+        return;
+    }
+    const markType = document.getElementById('marks-type').value || 'Marks';
+    const markName = document.getElementById('marks-name').value.trim() || 'Component';
+    const maxMarks = parseFloat(document.getElementById('marks-max').value) || 100;
+    
+    const rows = [
+        ["Register Number", "Student Name", `${markType} - ${markName} (Max: ${maxMarks})`]
+    ];
+    
+    currentStudents.forEach(stu => {
+        // Retrieve current score from UI if already filled
+        let currentVal = "";
+        const tr = document.querySelector(`#marks-tbody tr[data-student-id="${stu.id}"]`);
+        if (tr) {
+            const input = tr.querySelector('.mark-input');
+            if (input && input.value !== '') currentVal = parseFloat(input.value);
+        }
+        rows.push([stu.register_number, stu.name, currentVal]);
+    });
+    
+    try {
+        const worksheet = XLSX.utils.aoa_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.book_append_sheet(workbook, worksheet, "Marks Sheet");
+        
+        const safeName = markName.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+        const fileName = `Marks_Template_${markType}_${safeName}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
+        showToast("Marks template downloaded.", "success");
+    } catch (e) {
+        console.error(e);
+        showToast("Failed to generate marks template.", "error");
+    }
+};
+
+/** Marks Excel/CSV Uploader & Auto-Fill */
+window.importMarksFromFile = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!currentStudents.length) {
+        showToast("Please load the student sheet first.", "warning");
+        event.target.value = "";
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+            
+            if (!jsonData.length) {
+                showToast("The uploaded file is empty.", "error");
+                return;
+            }
+            
+            // Detect headers / columns
+            let regKey = null;
+            let markKey = null;
+            
+            const sampleRow = jsonData[0];
+            const keys = Object.keys(sampleRow);
+            
+            for (const k of keys) {
+                const kl = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (kl.includes('reg') || kl.includes('roll') || kl.includes('id') || kl.includes('adm')) {
+                    regKey = k;
+                }
+                if (kl.includes('mark') || kl.includes('score') || kl.includes('grade') || kl.includes('val')) {
+                    markKey = k;
+                }
+            }
+            
+            // Fallbacks
+            if (!regKey && keys.length > 0) regKey = keys[0];
+            if (!markKey) {
+                if (keys.length > 2) markKey = keys[2];
+                else if (keys.length > 1) markKey = keys[1];
+            }
+            
+            if (!regKey || !markKey) {
+                showToast("Could not determine student register or marks columns in spreadsheet.", "error");
+                return;
+            }
+            
+            let matchedCount = 0;
+            const maxMarks = parseFloat(document.getElementById('marks-max').value) || 100;
+            const rows = document.querySelectorAll('#marks-tbody tr');
+            
+            rows.forEach(tr => {
+                const regNo = tr.querySelector('.reg-col').textContent.trim();
+                const input = tr.querySelector('.mark-input');
+                
+                // Match register number
+                const matchedRow = jsonData.find(row => {
+                    const rowReg = String(row[regKey] || '').trim();
+                    return rowReg.toLowerCase() === regNo.toLowerCase();
+                });
+                
+                if (matchedRow) {
+                    const val = parseFloat(matchedRow[markKey]);
+                    if (!isNaN(val)) {
+                        input.value = val;
+                        highlightMarkInput(input, maxMarks);
+                        matchedCount++;
+                    }
+                }
+            });
+            
+            showToast(`Auto-filled marks for ${matchedCount} out of ${rows.length} students.`, "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to parse file. Verify file format.", "error");
+        } finally {
+            event.target.value = "";
+        }
+    };
+    reader.readAsArrayBuffer(file);
+};
+
+/** Attendance Template Downloader */
+window.downloadAttendanceTemplate = function() {
+    if (!currentStudents.length) {
+        showToast("Please load the student list first.", "warning");
+        return;
+    }
+    const date = document.getElementById('att-date').value || new Date().toISOString().split('T')[0];
+    const hour = document.getElementById('att-hour').value || '1';
+    
+    const rows = [
+        ["Register Number", "Student Name", "Attendance Status (P / AB / SR / DL)"]
+    ];
+    
+    currentStudents.forEach(stu => {
+        let currentStatus = "P"; // default to Present
+        const tr = document.querySelector(`#att-tbody tr[data-student-id="${stu.id}"]`);
+        if (tr) {
+            const active = tr.querySelector('.status-btn[class*="active-"]');
+            if (active) currentStatus = active.dataset.code;
+        }
+        rows.push([stu.register_number, stu.name, currentStatus]);
+    });
+    
+    try {
+        const worksheet = XLSX.utils.aoa_to_sheet(rows);
+        const workbook = XLSX.utils.book_new();
+        XLSX.book_append_sheet(workbook, worksheet, "Attendance Sheet");
+        
+        const fileName = `Attendance_Template_${date}_hour_${hour}.xlsx`;
+        XLSX.writeFile(workbook, fileName);
+        showToast("Attendance template downloaded.", "success");
+    } catch (e) {
+        console.error(e);
+        showToast("Failed to generate attendance template.", "error");
+    }
+};
+
+/** Attendance Excel/CSV Uploader & Auto-Fill */
+window.importAttendanceFromFile = function(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    
+    if (!currentStudents.length) {
+        showToast("Please load the student sheet first.", "warning");
+        event.target.value = "";
+        return;
+    }
+    
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const jsonData = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+            
+            if (!jsonData.length) {
+                showToast("The uploaded file is empty.", "error");
+                return;
+            }
+            
+            let regKey = null;
+            let statusKey = null;
+            
+            const sampleRow = jsonData[0];
+            const keys = Object.keys(sampleRow);
+            
+            for (const k of keys) {
+                const kl = k.toLowerCase().replace(/[^a-z0-9]/g, '');
+                if (kl.includes('reg') || kl.includes('roll') || kl.includes('id') || kl.includes('adm')) {
+                    regKey = k;
+                }
+                if (kl.includes('status') || kl.includes('attend') || kl.includes('present') || kl.includes('state')) {
+                    statusKey = k;
+                }
+            }
+            
+            // Fallbacks
+            if (!regKey && keys.length > 0) regKey = keys[0];
+            if (!statusKey) {
+                if (keys.length > 2) statusKey = keys[2];
+                else if (keys.length > 1) statusKey = keys[1];
+            }
+            
+            if (!regKey || !statusKey) {
+                showToast("Could not determine student register or attendance status columns in spreadsheet.", "error");
+                return;
+            }
+            
+            let matchedCount = 0;
+            const rows = document.querySelectorAll('#att-tbody tr');
+            
+            rows.forEach(tr => {
+                const regNo = tr.querySelector('.reg-col').textContent.trim();
+                
+                // Match register number
+                const matchedRow = jsonData.find(row => {
+                    const rowReg = String(row[regKey] || '').trim();
+                    return rowReg.toLowerCase() === regNo.toLowerCase();
+                });
+                
+                if (matchedRow) {
+                    const rawVal = String(matchedRow[statusKey]).trim().toUpperCase();
+                    let mappedStatus = '';
+                    
+                    if (['P', 'PRESENT', '1', 'Y', 'YES'].includes(rawVal)) {
+                        mappedStatus = 'P';
+                    } else if (['AB', 'ABSENT', 'A', '0', 'N', 'NO'].includes(rawVal)) {
+                        mappedStatus = 'AB';
+                    } else if (rawVal === 'SR') {
+                        mappedStatus = 'SR';
+                    } else if (rawVal === 'DL') {
+                        mappedStatus = 'DL';
+                    }
+                    
+                    if (mappedStatus) {
+                        const btn = tr.querySelector(`.status-btn[data-code="${mappedStatus}"]`);
+                        if (btn) {
+                            setStudentStatus(btn, mappedStatus);
+                            matchedCount++;
+                        }
+                    }
+                }
+            });
+            
+            showToast(`Auto-filled attendance for ${matchedCount} out of ${rows.length} students.`, "success");
+        } catch (err) {
+            console.error(err);
+            showToast("Failed to parse file. Verify file format.", "error");
+        } finally {
+            event.target.value = "";
+        }
+    };
+    reader.readAsArrayBuffer(file);
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
 // Initialization
 // ─────────────────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {

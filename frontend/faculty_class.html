@@ -8,6 +8,8 @@
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <script src="js/theme.js"></script>
+    <!-- SheetJS for Excel/CSV parsing and export -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .tabs-header { border-bottom: 2px solid var(--border-color); display: flex; gap: 2rem; margin-bottom: 2rem; flex-wrap: wrap; }
@@ -73,6 +75,10 @@
         .btn-bulk.absent   { background: rgba(239,68,68,0.12); color: #ef4444; border: 1px solid rgba(239,68,68,0.35); }
         .btn-bulk.present:hover { background: rgba(16,185,129,0.28); }
         .btn-bulk.absent:hover  { background: rgba(239,68,68,0.22); }
+        .btn-bulk.import    { background: rgba(16,185,129,0.15); color: #10b981; border: 1px solid rgba(16,185,129,0.35); }
+        .btn-bulk.import:hover { background: rgba(16,185,129,0.28); }
+        .btn-bulk.template  { background: rgba(99,102,241,0.12); color: #818cf8; border: 1px solid rgba(99,102,241,0.35); }
+        .btn-bulk.template:hover { background: rgba(99,102,241,0.25); }
         .att-summary-pill { margin-left: auto; display: flex; gap: 0.5rem; align-items: center; font-size: 0.78rem; font-weight: 600; }
         .spill { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.2rem 0.65rem; border-radius: 1rem; }
         .spill.p  { background: rgba(16,185,129,0.15); color: #10b981; }
@@ -296,6 +302,10 @@
                             <span class="att-bulk-label"><i class="fas fa-bolt"></i> Bulk:</span>
                             <button class="btn-bulk present" onclick="markAll('P')"><i class="fas fa-check"></i> Mark All Present</button>
                             <button class="btn-bulk absent" onclick="markAll('AB')"><i class="fas fa-times"></i> Mark All Absent</button>
+                            <span style="border-left: 1px solid var(--border-color); height: 20px; margin: 0 0.25rem;"></span>
+                            <button class="btn-bulk template" onclick="downloadAttendanceTemplate()"><i class="fas fa-file-download"></i> Template</button>
+                            <button class="btn-bulk import" onclick="document.getElementById('att-file-input').click()"><i class="fas fa-file-import"></i> Upload Excel/CSV</button>
+                            <input type="file" id="att-file-input" accept=".csv,.xlsx,.xls" style="display:none;" onchange="importAttendanceFromFile(event)">
                             <div class="att-summary-pill">
                                 <span class="spill p"><i class="fas fa-check-circle"></i> <span id="cnt-P">0</span> P</span>
                                 <span class="spill ab"><i class="fas fa-times-circle"></i> <span id="cnt-AB">0</span> AB</span>
@@ -379,6 +389,10 @@
                                 <span class="marks-bulk-label"><i class="fas fa-bolt"></i> Quick fill:</span>
                                 <button class="btn-fill-all" onclick="fillAll()"><i class="fas fa-fill-drip"></i> Fill All Empty</button>
                                 <input type="number" id="fill-value" class="form-control" style="max-width:90px; display:inline-block;" placeholder="Value">
+                                <span style="border-left: 1px solid var(--border-color); height: 20px; margin: 0 0.25rem;"></span>
+                                <button class="btn-bulk template" onclick="downloadMarksTemplate()"><i class="fas fa-file-download"></i> Template</button>
+                                <button class="btn-bulk import" onclick="document.getElementById('marks-file-input').click()"><i class="fas fa-file-import"></i> Upload Excel/CSV</button>
+                                <input type="file" id="marks-file-input" accept=".csv,.xlsx,.xls" style="display:none;" onchange="importMarksFromFile(event)">
                                 <span class="marks-range-note" id="marks-range-note">Range: 0 – 100</span>
                             </div>
                             <div class="marks-sheet-wrapper">
