@@ -629,13 +629,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     await fetchStudentProfileIfNeeded();
     fetchDocuments();
 });
-
-// ── Responsive Drawer Toggle ──
-window.toggleSidebar = function() {
-    const sidebar = document.querySelector('.sidebar');
-    const backdrop = document.getElementById('sidebar-backdrop');
-    if (sidebar && backdrop) {
-        sidebar.classList.toggle('open');
-        backdrop.classList.toggle('active');
-    }
-};

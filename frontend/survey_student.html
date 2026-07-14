@@ -249,23 +249,27 @@
     </style>
 </head>
 <body>
-<div class="dashboard-layout">
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-header"><h2>EduNexus</h2></div>
-        <ul class="nav-links" id="sidebar-menu">
-            <!-- Sidebar links will render dynamically based on user JWT roles -->
-        </ul>
-        <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
-            <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="width: 100%; margin: 0;"><i class="fas fa-moon"></i> Dark Mode</button>
-            <button onclick="logout()" class="btn-logout" style="width: 100%; margin: 0;"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-    </aside>
+    <div class="dashboard-layout">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>EduNexus</h2></div>
+            <ul class="nav-links" id="sidebar-menu">
+                <!-- Sidebar links will render dynamically based on user JWT roles -->
+            </ul>
+            <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
+                <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="width: 100%; margin: 0;"><i class="fas fa-moon"></i> Dark Mode</button>
+                <button onclick="logout()" class="btn-logout" style="width: 100%; margin: 0;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
 
-    <!-- Main -->
-    <main class="main-content survey-main">
-        <div class="survey-topbar">
-            <h1 id="page-title"><i class="fas fa-poll" style="color:var(--primary-color);margin-right:.5rem;font-size:1.15rem;"></i>My Surveys</h1>
+        <!-- Main -->
+        <main class="main-content survey-main">
+            <div class="survey-topbar">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h1 id="page-title"><i class="fas fa-poll" style="color:var(--primary-color);margin-right:.5rem;font-size:1.15rem;"></i>My Surveys</h1>
+                </div>
         </div>
 
         <div class="survey-body" id="survey-body">

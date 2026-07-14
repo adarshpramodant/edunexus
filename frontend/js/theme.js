@@ -48,5 +48,15 @@
         window.location.href = 'login.html';
     };
 
+    // Global Sidebar Drawer Toggle
+    window.toggleSidebar = function() {
+        const sidebar = document.querySelector('.sidebar');
+        const backdrop = document.getElementById('sidebar-backdrop');
+        if (sidebar && backdrop) {
+            sidebar.classList.toggle('open');
+            backdrop.classList.toggle('active');
+        }
+    };
+
     document.addEventListener('DOMContentLoaded', applySavedTheme);
 })();

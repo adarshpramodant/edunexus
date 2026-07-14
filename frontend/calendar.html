@@ -309,6 +309,7 @@
 </head>
 <body>
     <div class="dashboard-layout">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
         <!-- Sidebar dynamically rendered by auth -->
         <aside class="sidebar">
             <div class="sidebar-header"><h2 id="portal-title">EduNexus Hub</h2></div>
@@ -323,7 +324,10 @@
 
         <main class="main-content">
             <header class="topbar">
-                <h1>Academic Calendar</h1>
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h1>Academic Calendar</h1>
+                </div>
                 <div class="user-profile" id="faculty-actions-container" style="display:none;">
                     <button class="btn" onclick="openCreateModal()"><i class="fas fa-plus"></i> Add Event</button>
                 </div>

@@ -281,24 +281,28 @@
     </style>
 </head>
 <body>
-<div class="dashboard-layout">
-    <!-- ── Sidebar ── -->
-    <aside class="sidebar">
-        <div class="sidebar-header"><h2>EduNexus</h2></div>
-        <ul class="nav-links" id="sidebar-menu">
-            <!-- Sidebar links will render dynamically based on user JWT roles -->
-        </ul>
-        <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
-            <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="width: 100%; margin: 0;"><i class="fas fa-moon"></i> Dark Mode</button>
-            <button onclick="logout()" class="btn-logout" style="width: 100%; margin: 0;"><i class="fas fa-sign-out-alt"></i> Logout</button>
-        </div>
-    </aside>
+    <div class="dashboard-layout">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
+        <!-- ── Sidebar ── -->
+        <aside class="sidebar">
+            <div class="sidebar-header"><h2>EduNexus</h2></div>
+            <ul class="nav-links" id="sidebar-menu">
+                <!-- Sidebar links will render dynamically based on user JWT roles -->
+            </ul>
+            <div class="sidebar-footer" style="padding: 1rem 1.5rem; border-top: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.5rem;">
+                <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="width: 100%; margin: 0;"><i class="fas fa-moon"></i> Dark Mode</button>
+                <button onclick="logout()" class="btn-logout" style="width: 100%; margin: 0;"><i class="fas fa-sign-out-alt"></i> Logout</button>
+            </div>
+        </aside>
 
-    <!-- ── Main ── -->
-    <main class="main-content builder-main">
-        <!-- Top bar -->
-        <div class="builder-topbar">
-            <h1><i class="fas fa-poll" style="color:var(--primary-color);margin-right:.6rem;font-size:1.2rem;"></i>Survey Manager</h1>
+        <!-- ── Main ── -->
+        <main class="main-content builder-main">
+            <!-- Top bar -->
+            <div class="builder-topbar">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h1><i class="fas fa-poll" style="color:var(--primary-color);margin-right:.6rem;font-size:1.2rem;"></i>Survey Manager</h1>
+                </div>
             <div class="topbar-actions">
                 <div class="view-tabs">
                     <button class="view-tab active" onclick="switchView('list',this)" id="vtab-list">

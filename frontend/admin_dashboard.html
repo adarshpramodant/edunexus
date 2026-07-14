@@ -125,6 +125,7 @@
 </head>
 <body>
     <div class="dashboard-layout">
+        <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="toggleSidebar()"></div>
         <aside class="sidebar">
             <div class="sidebar-header"><h2>EduNexus Admin</h2></div>
             <ul class="nav-links">
@@ -147,7 +148,12 @@
         </aside>
 
         <main class="main-content">
-            <header class="topbar"><h1>Admin Dashboard</h1></header>
+            <header class="topbar">
+                <div style="display:flex; align-items:center; gap:0.75rem;">
+                    <button id="sidebar-toggle" class="sidebar-toggle" onclick="toggleSidebar()"><i class="fas fa-bars"></i></button>
+                    <h1>Admin Dashboard</h1>
+                </div>
+            </header>
 
             <div class="content-sections">
                 <!-- Overview Section -->
