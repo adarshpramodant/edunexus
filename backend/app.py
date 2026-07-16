@@ -13,6 +13,7 @@ from document_routes import document_bp
 from assignment_routes import assignments_bp
 from calendar_routes import calendar_bp
 from analytics_routes import analytics_bp
+from import_routes import import_bp
 import bcrypt
 import jwt
 import datetime
@@ -34,6 +35,7 @@ app.register_blueprint(document_bp)
 app.register_blueprint(assignments_bp)
 app.register_blueprint(calendar_bp)
 app.register_blueprint(analytics_bp)
+app.register_blueprint(import_bp)
 
 @app.route('/')
 def home():

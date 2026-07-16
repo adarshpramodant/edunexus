@@ -108,7 +108,10 @@
                 <!-- Attendance Section -->
                 <section id="attendance" class="section-content">
                     <div class="dashboard-card">
-                        <h2>Record Attendance</h2>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+                            <h2 style="margin:0;">Record Attendance</h2>
+                            <a href="import.html" class="btn" style="padding:0.5rem 1rem; font-size:0.8rem; margin:0; display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;"><i class="fas fa-file-import"></i> Bulk Import</a>
+                        </div>
                         <form id="attendance-filter-form" class="inline-form" style="flex-wrap: wrap;">
                             <select id="att-class" class="form-control form-select" required onchange="loadClassSubjectsForAttendance()">
                                 <option value="" disabled selected>Select Class</option>
@@ -152,7 +155,10 @@
                 <!-- Marks Section -->
                 <section id="marks" class="section-content">
                     <div class="dashboard-card">
-                        <h2>Upload Marks</h2>
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap:1rem;">
+                            <h2 style="margin:0;">Upload Marks</h2>
+                            <a href="import.html" class="btn" style="padding:0.5rem 1rem; font-size:0.8rem; margin:0; display:inline-flex; align-items:center; gap:0.5rem; text-decoration:none;"><i class="fas fa-file-import"></i> Bulk Import</a>
+                        </div>
                         <form id="marks-filter-form" class="inline-form" style="flex-wrap: wrap;">
                             <select id="marks-class" class="form-control form-select" required onchange="loadClassSubjectsForMarks()">
                                 <option value="" disabled selected>Select Class</option>

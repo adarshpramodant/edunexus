@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EduNexus - Academic Data Processing Engine</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Third Party Sheet Parsers -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="js/theme.js"></script>
+    <style>
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #0b0f19;
+            color: #f3f4f6;
+            margin: 0;
+            padding: 0;
+        }
+
+        .import-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Stepper styles */
+        .stepper {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 3rem;
+            position: relative;
+            padding: 0 1rem;
+        }
+
+        .stepper::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transform: translateY(-50%);
+        }
+
+        .step {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+            z-index: 2;
+            cursor: pointer;
+        }
+
+        .step-circle {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 50%;
+            background: #1f2937;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #9ca3af;
+            transition: all 0.3s ease;
+        }
+
+        .step.active .step-circle {
+            background: #6366f1;
+            border-color: #6366f1;
+            color: #ffffff;
+            box-shadow: 0 0 20px rgba(99, 102, 241, 0.6);
+        }
+
+        .step.completed .step-circle {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+        }
+
+        .step-label {
+            margin-top: 0.75rem;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: #9ca3af;
+            text-align: center;
+        }
+
+        .step.active .step-label {
+            color: #ffffff;
+            font-weight: 600;
+        }
+
+        /* Form Wizard Sections */
+        .wizard-panel {
+            display: none;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .wizard-panel.active {
+            display: block;
+        }
+
+        /* Dropzone */
+        .dropzone {
+            border: 2px dashed rgba(99, 102, 241, 0.4);
+            border-radius: 1rem;
+            padding: 4rem 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: rgba(99, 102, 241, 0.02);
+        }
+
+        .dropzone:hover, .dropzone.dragover {
+            border-color: #6366f1;
+            background: rgba(99, 102, 241, 0.06);
+        }
+
+        .dropzone i {
+            font-size: 3.5rem;
+            color: #6366f1;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Editable Excel-like Grid */
+        .grid-container {
+            max-height: 500px;
+            overflow: auto;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            margin-top: 1.5rem;
+        }
+
+        .excel-grid {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.875rem;
+        }
+
+        .excel-grid th {
+            position: sticky;
+            top: 0;
+            background: #111827;
+            padding: 0.75rem 1rem;
+            font-weight: 600;
+            text-align: left;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+            z-index: 10;
+        }
+
+        .excel-grid td {
+            padding: 0.5rem 0.75rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            background: #1f2937;
+        }
+
+        .excel-grid td input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            color: #ffffff;
+            font-family: inherit;
+            font-size: inherit;
+            outline: none;
+            padding: 0.25rem;
+        }
+
+        .excel-grid td input:focus {
+            background: rgba(99, 102, 241, 0.15);
+            border-radius: 0.25rem;
+        }
+
+        /* Validation Colors */
+        .row-error td {
+            background: rgba(239, 68, 68, 0.15) !important;
+            border-bottom: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .row-warning td {
+            background: rgba(245, 158, 11, 0.15) !important;
+            border-bottom: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Conflict resolution cards */
+        .conflict-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1.5rem;
+        }
+
+        .conflict-card {
+            background: rgba(31, 41, 55, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 1rem;
+            padding: 1.5rem;
+        }
+
+        /* Progress ring */
+        .progress-ring-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            margin: 3rem 0;
+        }
+
+        .progress-bar-outer {
+            width: 100%;
+            height: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 5px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #6366f1, #10b981);
+            transition: width 0.3s ease;
+        }
+
+        /* Timeline logs */
+        .log-terminal {
+            background: #090d16;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem;
+            font-family: monospace;
+            font-size: 0.8rem;
+            max-height: 200px;
+            overflow-y: auto;
+            color: #34d399;
+        }
+
+        .btn-group {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2.5rem;
+        }
+
+        /* Validation Dashboard widgets */
+        .stats-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-widget {
+            background: rgba(31, 41, 55, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 1rem;
+            padding: 1.25rem;
+            text-align: center;
+        }
+
+        .stat-widget h3 {
+            font-size: 0.8rem;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin: 0;
+        }
+
+        .stat-widget p {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 0.5rem 0 0;
+            color: #ffffff;
+        }
+
+        .stat-green { border-top: 4px solid #10b981; }
+        .stat-red { border-top: 4px solid #ef4444; }
+        .stat-yellow { border-top: 4px solid #f59e0b; }
+        .stat-indigo { border-top: 4px solid #6366f1; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+    <div class="import-container">
+        <!-- Header -->
+        <header class="topbar" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+                <a href="faculty_dashboard.html" class="btn" style="padding: 0.6rem 1.2rem; background: transparent; border: 1px solid var(--border-color); color: var(--text-main); text-decoration: none; border-radius: 0.5rem; display: inline-flex; align-items: center; gap: 0.5rem;">
+                    <i class="fas fa-arrow-left"></i> Dashboard
+                </a>
+                <h1 style="font-size: 1.8rem; font-weight: 700; margin: 0;">Academic Data Processing Engine</h1>
+            </div>
+            <button onclick="toggleTheme()" class="btn-logout" id="theme-toggle-btn" style="width: auto; margin: 0; padding: 0.6rem 1.2rem;"><i class="fas fa-moon"></i> Dark Mode</button>
+        </header>
+
+        <!-- Stepper -->
+        <div class="stepper">
+            <div class="step active" id="step-1">
+                <div class="step-circle">1</div>
+                <div class="step-label">Roster Selection</div>
+            </div>
+            <div class="step" id="step-2">
+                <div class="step-circle">2</div>
+                <div class="step-label">Upload File</div>
+            </div>
+            <div class="step" id="step-3">
+                <div class="step-circle">3</div>
+                <div class="step-label">Header Mapping</div>
+            </div>
+            <div class="step" id="step-4">
+                <div class="step-circle">4</div>
+                <div class="step-label">Verify & Edit</div>
+            </div>
+            <div class="step" id="step-5">
+                <div class="step-circle">5</div>
+                <div class="step-label">Import Timeline</div>
+            </div>
+        </div>
+
+        <!-- Glass Main Card -->
+        <div class="glass-card">
+            
+            <!-- STEP 1: Details Selection -->
+            <div class="wizard-panel active" id="panel-step-1">
+                <h2 style="margin-top: 0; margin-bottom: 0.5rem;">Step 1: Select Roster Details</h2>
+                <p style="color: #9ca3af; margin-bottom: 2rem;">Specify the class, subject, and type of ledger you wish to process.</p>
+                
+                <div class="form-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem;">
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Class Section</label>
+                        <select id="sel-class" class="form-control form-select" style="width:100%;" onchange="onClassSelected()">
+                            <option value="" disabled selected>Select Class Section</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Subject</label>
+                        <select id="sel-subject" class="form-control form-select" style="width:100%;" disabled>
+                            <option value="" disabled selected>Select Class First</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Academic Year</label>
+                        <select id="sel-ay" class="form-control form-select" style="width:100%;">
+                            <option value="2026-2027" selected>2026 - 2027</option>
+                            <option value="2025-2026">2025 - 2026</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Spreadsheet Type</label>
+                        <select id="sel-type" class="form-control form-select" style="width:100%;" onchange="onTypeSelected()">
+                            <option value="auto" selected>Auto-Detect from Spreadsheet (Recommended)</option>
+                            <option value="marks">Academic Marks Ledger</option>
+                            <option value="attendance">Daily Class Attendance Ledger</option>
+                            <option value="combined">Combined Marks + Attendance</option>
+                        </select>
+                    </div>
+                    <div class="form-group marks-opt">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Assessment Type</label>
+                        <select id="sel-exam-type" class="form-control form-select" style="width:100%;">
+                            <option value="internal" selected>Internal Assessments (CIA)</option>
+                            <option value="assignment">Assignments</option>
+                            <option value="lab">Lab / Practical Exam</option>
+                            <option value="project">Project Work</option>
+                            <option value="seminar">Seminar / Presentation</option>
+                            <option value="quiz">Quiz Marks</option>
+                        </select>
+                    </div>
+                    <div class="form-group att-opt" style="display:none;">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Date</label>
+                        <input type="date" id="sel-date" class="form-control" style="width:100%;">
+                    </div>
+                    <div class="form-group att-opt" style="display:none;">
+                        <label style="display:block; margin-bottom:0.5rem; font-weight:500;">Period/Hour</label>
+                        <select id="sel-hour" class="form-control form-select" style="width:100%;">
+                            <option value="1" selected>1st Hour</option>
+                            <option value="2">2nd Hour</option>
+                            <option value="3">3rd Hour</option>
+                            <option value="4">4th Hour</option>
+                            <option value="5">5th Hour</option>
+                            <option value="6">6th Hour</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Template Generation area -->
+                <div style="margin-top: 3rem; padding: 1.5rem; background: rgba(99,102,241,0.05); border: 1px solid rgba(99,102,241,0.15); border-radius: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h4 style="margin: 0 0 0.25rem 0; font-size: 1.05rem;">Need a blank spreadsheet template?</h4>
+                        <p style="margin: 0; color: #9ca3af; font-size: 0.85rem;">Generate an Excel template pre-populated with student details for offline grading.</p>
+                    </div>
+                    <button onclick="downloadRosterTemplate()" class="btn" style="margin-top: 0; padding: 0.75rem 1.5rem; display: inline-flex; align-items: center; gap: 0.5rem; background: #6366f1;">
+                        <i class="fas fa-file-download"></i> Generate Template
+                    </button>
+                </div>
+            </div>
+
+            <!-- STEP 2: File Upload -->
+            <div class="wizard-panel" id="panel-step-2">
+                <h2 style="margin-top: 0; margin-bottom: 0.5rem;">Step 2: Upload Document File</h2>
+                <p style="color: #9ca3af; margin-bottom: 2rem;">Upload the file containing student records. Supports CSV, XLSX, XLS, and ODS formats.</p>
+                
+                <div id="dropzone" class="dropzone" onclick="triggerFileSelect()">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h3>Drag & Drop Spreadsheet Here</h3>
+                    <p style="color: #9ca3af; margin-top: 0.5rem;">or click to browse files from your computer</p>
+                    <input type="file" id="file-input" style="display:none;" onchange="handleFileSelect(event)">
+                </div>
+
+                <div id="file-info" style="display:none; margin-top: 2rem; padding: 1.25rem; background: rgba(31,41,55,0.5); border-radius: 0.75rem; align-items: center; justify-content: space-between; border: 1px solid rgba(255,255,255,0.05);">
+                    <div style="display:flex; align-items:center; gap: 1rem;">
+                        <i class="far fa-file-excel" style="font-size:2.5rem; color:#10b981;"></i>
+                        <div>
+                            <h4 id="file-name-lbl" style="margin:0; font-size:1.05rem;">-</h4>
+                            <p id="file-meta-lbl" style="margin:0.25rem 0 0 0; font-size:0.8rem; color:#9ca3af;">-</p>
+                        </div>
+                    </div>
+                    <div id="detection-pill" style="background: rgba(99,102,241,0.15); color: #818cf8; padding: 0.5rem 1rem; border-radius: 2rem; font-size: 0.85rem; font-weight: 600;">
+                        Auto-detected: Marks
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Header Mapping -->
+            <div class="wizard-panel" id="panel-step-3">
+                <h2 style="margin-top: 0; margin-bottom: 0.5rem;">Step 3: Column Mapping & AI Matches</h2>
+                <p style="color: #9ca3af; margin-bottom: 2rem;">Correlate the columns of the uploaded file with database attributes.</p>
+                
+                <div id="ai-matching-alert" style="background: rgba(16,185,129,0.1); border: 1px solid rgba(16,185,129,0.25); color: #34d399; padding: 1rem; border-radius: 0.75rem; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 2rem;">
+                    <i class="fas fa-robot" style="font-size: 1.25rem;"></i>
+                    <div>
+                        <strong>AI Matcher Active:</strong> Mapped headers automatically with <span id="lbl-ai-confidence">0%</span> confidence.
+                    </div>
+                </div>
+
+                <div class="table-container" style="margin-top: 1.5rem;">
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr>
+                                <th>Database Target Field</th>
+                                <th>Mapped Spreadsheet Header</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="mapping-rows-mount">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- STEP 4: Verification and Editing Grid -->
+            <div class="wizard-panel" id="panel-step-4">
+                <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem; margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="margin: 0 0 0.5rem 0;">Step 4: Data Quality & Preview Grid</h2>
+                        <p style="color: #9ca3af; margin: 0;">Validate student registers and edit cell values directly in the ledger before saving.</p>
+                    </div>
+                    <!-- Duplicate Strategies dropdown -->
+                    <div>
+                        <label style="font-size:0.8rem; color:#9ca3af; display:block; margin-bottom:0.25rem; font-weight:500;">Conflict Strategy</label>
+                        <select id="sel-conflict-strategy" class="form-control form-select" style="padding: 0.5rem 1rem; font-size:0.85rem;">
+                            <option value="replace" selected>Replace Existing Database Values</option>
+                            <option value="skip">Skip Existing Database Values</option>
+                            <option value="merge">Merge (Update Existing)</option>
+                            <option value="update_empty">Update Only Blank Values</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Validation Dashboard Stats -->
+                <div class="stats-summary">
+                    <div class="stat-widget stat-indigo">
+                        <h3>Total Rows</h3>
+                        <p id="stat-total-rows">0</p>
+                    </div>
+                    <div class="stat-widget stat-green">
+                        <h3>Valid Rows</h3>
+                        <p id="stat-valid-rows">0</p>
+                    </div>
+                    <div class="stat-widget stat-yellow">
+                        <h3>Warnings</h3>
+                        <p id="stat-warning-rows">0</p>
+                    </div>
+                    <div class="stat-widget stat-red">
+                        <h3>Errors</h3>
+                        <p id="stat-error-rows">0</p>
+                    </div>
+                </div>
+
+                <!-- Bulk Editing Controls -->
+                <div class="bulk-actions-bar" style="display:flex; gap:0.5rem; flex-wrap:wrap; margin-bottom:1rem; padding: 0.75rem; background: rgba(255,255,255,0.03); border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <button class="btn" style="padding: 0.4rem 0.8rem; font-size:0.75rem; margin:0;" onclick="bulkSetAttendance('P')"><i class="fas fa-check"></i> Bulk Present</button>
+                    <button class="btn" style="padding: 0.4rem 0.8rem; font-size:0.75rem; margin:0; background:rgba(239, 68, 68, 0.2); border-color:#ef4444;" onclick="bulkSetAttendance('AB')"><i class="fas fa-times"></i> Bulk Absent</button>
+                    <button class="btn" style="padding: 0.4rem 0.8rem; font-size:0.75rem; margin:0;" onclick="fillDownMarks()"><i class="fas fa-arrow-down"></i> Fill Down</button>
+                </div>
+
+                <!-- Excel Grid -->
+                <div class="grid-container">
+                    <table class="excel-grid">
+                        <thead>
+                            <tr id="grid-header-mount">
+                                <!-- Populated dynamically -->
+                            </tr>
+                        </thead>
+                        <tbody id="grid-rows-mount">
+                            <!-- Populated dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Validation Issues table -->
+                <div id="validation-errors-section" style="margin-top:2.5rem; display:none;">
+                    <h3 style="color:#ef4444; margin-bottom: 0.75rem;"><i class="fas fa-exclamation-triangle"></i> Validation Issues Found</h3>
+                    <div class="table-container">
+                        <table style="width:100%;">
+                            <thead>
+                                <tr>
+                                    <th>Row</th>
+                                    <th>Student identifier</th>
+                                    <th>Issue Reason</th>
+                                    <th>Recommendation</th>
+                                </tr>
+                            </thead>
+                            <tbody id="validation-errors-mount"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 5: Import Progress Timeline -->
+            <div class="wizard-panel" id="panel-step-5">
+                <h2 style="margin-top: 0; margin-bottom: 0.5rem;">Step 5: Import Execution Timeline</h2>
+                <p style="color: #9ca3af; margin-bottom: 2rem;">The database transaction is executing. Processing records in chunks.</p>
+                
+                <div class="progress-ring-container">
+                    <div style="font-size: 2.5rem; font-weight: 800; color: #6366f1;" id="lbl-progress-percent">0%</div>
+                    <div class="progress-bar-outer">
+                        <div class="progress-bar-inner" id="progress-bar-fill"></div>
+                    </div>
+                    <div style="margin-top:1.5rem; font-size:0.95rem; color:#9ca3af;" id="lbl-progress-status">Uploading documents...</div>
+                </div>
+
+                <h3 style="margin-bottom: 0.75rem;">Live Parser Logs</h3>
+                <div class="log-terminal" id="log-terminal-mount">
+                    [SYSTEM] Pipeline initialized. Ready to process...
+                </div>
+            </div>
+
+            <!-- BUTTON GROUPS -->
+            <div class="btn-group">
+                <button class="btn" id="btn-back" style="background: transparent; border: 1px solid var(--border-color); color: var(--text-main); visibility: hidden;" onclick="prevStep()">Back</button>
+                <button class="btn" id="btn-next" style="background: #6366f1;" onclick="nextStep()">Continue</button>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="js/import.js"></script>
+</body>
+</html>
